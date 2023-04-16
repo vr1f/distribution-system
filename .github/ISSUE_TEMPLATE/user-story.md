@@ -1,7 +1,7 @@
 ---
 name: User Story
 about: Suggest an idea or use case for this project
-title: As a [user], I want to [task], so that [results]
+title: As a USER, I want to TASK, so that RESULTS
 labels: ''
 assignees: ''
 
