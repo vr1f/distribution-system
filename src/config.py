@@ -1,0 +1,99 @@
+# =========================================================================
+# 
+# VR1FAMILY CHARITY DISTRIBUTION IT SYSTEM
+# 
+# Configuration
+# 
+# =========================================================================
+
+# Returns a configuration object containing relevant environment parameters.
+# Base config class with universal parameters
+# Child classes with environment specific parameters which can be adjusted for deployment, local testing etc.
+
+
+import os
+from logging import Logger
+import boto3
+import json
+
+# Parent class for any variables which are independent of operating system:
+class Config:
+
+    EXAMPLE_GENERIC_VARIABLE = True
+
+# AWS config should also work for local Docker testing:
+class AWSConfig(Config):
+
+    def __init__(self):
+
+        self.FRONTEND_HOST = "0.0.0.0" 
+        self.FRONTEND_PORT = 80
+        self.TEMPLATES_DIR = "../app/templates"
+        self.BASE_HREF = os.environ.get("BASE_HREF")
+
+        aws_region=os.environ.get('AWS_REGION')
+        db_secret_name=os.environ.get('DB_SECRET_NAME')
+        session = boto3.session.Session()
+        client = session.client(
+            service_name='secretsmanager',
+            region_name=aws_region
+        )
+        db_response = client.get_secret_value(SecretId=db_secret_name)
+        db_details = json.loads(db_response['SecretString'])
+        
+        self.DB_DRIVERNAME="postgresql+psycopg2"
+        self.DB_USERNAME= db_details['username']
+        self.DB_HOST = db_details['host']
+        self.DB_PORT = db_details['port']
+        self.DB_DATABASE = db_details['dbname']
+        self.DB_PASSWORD = db_details['password']
+
+# For windows users. Will need to set up postgres locally, and create a new db with details per below:
+class WindowsConfig(Config):
+
+    def __init__(self):
+
+        self.FRONTEND_HOST = "localhost"
+        self.FRONTEND_PORT = 8000
+        self.TEMPLATES_DIR = os.getcwd() + "/src/templates/" 
+        self.BASE_HREF = "http://localhost:8000"
+        self.DB_DRIVERNAME="postgresql+psycopg2"
+        self.DB_USERNAME="postgres"
+        self.DB_HOST="localhost"
+        self.DB_PORT="5432"
+        self.DB_DATABASE="vr1_db1"
+        self.DB_PASSWORD=input("Enter DB password:")
+
+# For Apple users. Will need to set up postgres locally, and create a new db with details per below (or as amended):
+# (Apple currently identical to Windows config. Apple users can amend later if required)
+class AppleConfig(Config):
+
+    def __init__(self):
+
+        self.FRONTEND_HOST = "localhost"
+        self.FRONTEND_PORT = 8000
+        self.TEMPLATES_DIR = os.getcwd() + "/src/templates/" 
+        self.BASE_HREF = "http://localhost:8000"
+        self.DB_DRIVERNAME="postgresql+psycopg2"
+        self.DB_USERNAME="postgres"
+        self.DB_HOST="localhost"
+        self.DB_PORT="5432"
+        self.DB_DATABASE="vr1_db1"
+        self.DB_PASSWORD=input("Enter DB password:")
+
+
+def get_config(log: Logger):
+    
+    import platform
+    plt = platform.system()
+    if plt == "Linux":
+        log.info("AWS / Docker Environment Selected.")
+        return AWSConfig()
+    elif plt == "Darwin":
+        log.info("Apple Environment Selected.")
+        return AppleConfig()
+    else:
+        log.info("Windows Environment Selected.")
+        return WindowsConfig() 
+
+    
