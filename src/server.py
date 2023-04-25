@@ -92,13 +92,13 @@ def home(
 # =====================
 #  Add Aid recipients API:
 # =====================
-@app.get("/add_aid_receipient/")
+@app.get("/add_aid_recipient/")
 def login(
         request: Request,
         new_recipient: dict
     ) -> dict:
 
-    log.info("'/add_aid_receipient/' called from: " + str(request.client))
+    log.info("'/add_aid_recipient/' called from: " + str(request.client))
     from db_builder import Recipient
     from db_api import db_create_new_recipient
     new_recipient = Recipient(**new_recipient.dict())
