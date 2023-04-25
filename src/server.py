@@ -93,7 +93,7 @@ def home(
 #  Add Aid recipients API:
 # =====================
 @app.get("/add_aid_recipient/")
-def login(
+def add_recipient(
         request: Request,
         new_recipient: dict
     ) -> dict:
