@@ -9,12 +9,14 @@
 
 
 # Imports
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.templating import Jinja2Templates
 from starlette.templating import _TemplateResponse
 import uvicorn
 from sqlalchemy.exc import OperationalError
+from typing import Annotated
+from fastapi.security import OAuth2PasswordRequestForm
 
 
 # Initialise log:
@@ -35,6 +37,9 @@ db_host = config.DB_HOST
 db_port = config.DB_PORT
 db_database = config.DB_DATABASE
 db_password = config.DB_PASSWORD
+secret_key = config.SECRET_KEY
+algorithm = config.ALGORITHM
+access_token_expire_minutes = config.ACCESS_TOKEN_EXPIRE_MINUTES
 
 
 # Connect to DB
@@ -109,6 +114,28 @@ def add_recipient(
     except:
         log.error("Unable to access database")
     return {'success':success}
+
+
+# =====================
+# API ENDPOINT: USER LOG-IN
+# It checks user credentials and, if valid, returns a JWT access token 
+# Return object = dictionary {Success: bool, token: string}
+# =====================
+@app.post("/check_login")
+async def login_for_access_token(
+        request: Request,
+        form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
+    ) -> dict:
+
+    log.info("'/check_login' called from: " + str(request.client))
+    from security import get_token
+    success, token = False, None
+    try:
+        token = get_token(secret_key, algorithm, access_token_expire_minutes, form_data.username, form_data.password)
+        success = True if token != None else False
+    except:
+        log.error("Unable to get token")
+    return {"success": success, "token": token}
 
 
 # =====================
