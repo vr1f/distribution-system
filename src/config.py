@@ -47,6 +47,10 @@ class AWSConfig(Config):
         self.DB_PORT = db_details['port']
         self.DB_DATABASE = db_details['dbname']
         self.DB_PASSWORD = db_details['password']
+        self.SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
+        self.ALGORITHM = "HS256"
+        self.ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
 
 # For windows users. Will need to set up postgres locally, and create a new db with details per below:
 class WindowsConfig(Config):
@@ -63,6 +67,10 @@ class WindowsConfig(Config):
         self.DB_PORT="5432"
         self.DB_DATABASE="vr1_db1"
         self.DB_PASSWORD=input("Enter DB password:")
+        self.SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
+        self.ALGORITHM = "HS256"
+        self.ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
 
 # For Apple users. Will need to set up postgres locally, and create a new db with details per below (or as amended):
 # (Apple currently identical to Windows config. Apple users can amend later if required)
@@ -80,6 +88,9 @@ class AppleConfig(Config):
         self.DB_PORT="5432"
         self.DB_DATABASE="vr1_db1"
         self.DB_PASSWORD=input("Enter DB password:")
+        self.SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
+        self.ALGORITHM = "HS256"
+        self.ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
 def get_config(log: Logger):
