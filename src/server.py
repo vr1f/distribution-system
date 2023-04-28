@@ -101,7 +101,7 @@ def home(
 # Parameters = dictionary containing fields: {'username':..., 'password':...}
 # =====================
 @app.post("/add_new_user/", status_code=201)
-def add_recipient(
+def add_new_user(
         request: Request,
         user: dict
     ) -> dict:
@@ -169,7 +169,7 @@ async def login_for_access_token(
 # Return object = dictionary {error: str|None, id: str|None}
 # =====================
 @app.post("/aid_recipient")
-async def login_for_access_token(
+async def add_aid_recipient(
         recipient: AidRecipient,
     ) -> dict:
 
@@ -192,7 +192,7 @@ async def login_for_access_token(
 # Return object = dictionary {error: str|None, id: str|None}
 # =====================
 @app.put("/aid_recipient")
-async def login_for_access_token(
+async def update_aid_recipient(
         recipient: AidRecipient,
     ) -> dict:
 
@@ -215,7 +215,7 @@ async def login_for_access_token(
 # Return object = dictionary {error: str|None, id: str|None}
 # =====================
 @app.delete("/aid_recipient")
-async def login_for_access_token(
+async def delete_aid_recipient(
         recipient: PersonID,
     ) -> dict:
 
