@@ -9,14 +9,12 @@
 
 
 # Imports
-from fastapi import FastAPI, Request, Depends
+from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.templating import Jinja2Templates
 from starlette.templating import _TemplateResponse
 import uvicorn
 from sqlalchemy.exc import OperationalError
-from typing import Annotated
-from fastapi.security import OAuth2PasswordRequestForm
 
 
 # Initialise log:
@@ -89,53 +87,77 @@ app.add_middleware(
 def home(
         request: Request
     ) -> _TemplateResponse:
+    
+    #TODO: Check token validity
+
     log.info("'/' called from: " + str(request.client))
     return templates.TemplateResponse("index.html", {"request": request, "base_href": base_href})
 
 
-# **Example API call**
 # =====================
-#  Add Aid recipients API:
+# API ENDPOINT: ADD NEW USER
+# Add new system user
+# Parameters = dictionary containing fields: {'username':..., 'password':...}
 # =====================
-@app.get("/add_aid_recipient/")
+@app.post("/add_new_user/", status_code=201)
 def add_recipient(
         request: Request,
-        new_recipient: dict
+        user: dict 
     ) -> dict:
 
-    log.info("'/add_aid_recipient/' called from: " + str(request.client))
-    from db_builder import Recipient
-    from db_api import db_create_new_recipient
-    new_recipient = Recipient(**new_recipient.dict())
-    success = False
+    log.info("'/add_new_user/' called from: " + str(request.client))
+    from db_builder import User, Privileges
+    from db_api import add_new_user
+    from security import hash_password
+
+    new_user = User(
+        username= user['username'], 
+        password_hash = hash_password(user['password']),
+        access_level = Privileges.USER  # Default privilege level is 'user'
+    ) 
     try:
-        db_create_new_recipient(new_recipient)
-        success = True
+        add_new_user(engine, new_user)
+        log.info("New user added: " + user['username'])
     except:
-        log.error("Unable to access database")
-    return {'success':success}
+        log.error("Unable to add new user.")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Unable to add new user.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return {'username':user['username']}
 
 
 # =====================
-# API ENDPOINT: USER LOG-IN
+# API ENDPOINT: CHECK LOG-IN DETAILS & PROVIDE TOKEN
 # It checks user credentials and, if valid, returns a JWT access token 
-# Return object = dictionary {Success: bool, token: string}
+# Return object = dictionary {token: string} (or 401 Error if invalid credentials)
 # =====================
-@app.post("/check_login")
+@app.post("/check_login", status_code=200)
 async def login_for_access_token(
         request: Request,
-        form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
+        details: dict # dictionary containing fields: {'username':..., 'password':...}
     ) -> dict:
 
     log.info("'/check_login' called from: " + str(request.client))
     from security import get_token
-    success, token = False, None
+    token = False
     try:
-        token = get_token(secret_key, algorithm, access_token_expire_minutes, form_data.username, form_data.password)
-        success = True if token != None else False
+        token = get_token(engine, secret_key, access_token_expire_minutes, details['username'], details['password'])
     except:
-        log.error("Unable to get token")
-    return {"success": success, "token": token}
+        log.error("Unable to check token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Unable to verify details",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return {"token": token}
 
 
 # =====================

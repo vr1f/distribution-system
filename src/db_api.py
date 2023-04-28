@@ -7,22 +7,22 @@
 # =========================================================================
 
 from sqlalchemy.engine import Engine
-from db_builder import Recipient
+from sqlalchemy.orm import sessionmaker
+from db_builder import User
 
 
-# Create new aid recipient
-def db_create_new_recipient(
+# =======================
+# ADD NEW USER
+# Creates new user in database
+# =======================
+def add_new_user(
         engine: Engine, 
-        recipient: Recipient
+        user: User
     ):
-
-    from sqlalchemy.orm import sessionmaker
-
     Session = sessionmaker(bind=engine)
     with Session() as session:
-        session.add(recipient)
+        session.add(user)
         session.commit()
-
 
 # =======================
 # CHECK USER CREDENTIALS
@@ -32,10 +32,17 @@ def db_create_new_recipient(
 # If match, return True. Else return False.
 # =======================
 def check_user_credentials(
+        engine,
         username, 
         pwd_hash
     ) -> bool:
 
-    # TODO
-
-    return True
+    from db_builder import User
+    Session = sessionmaker(bind=engine)
+    with Session() as session:
+        query = session.query(User)
+        user = query.filter(User.username == username).first()
+        if user.password_hash == pwd_hash:
+            return True
+        else:
+            return False

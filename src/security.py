@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from jose import jwt
-from passlib.context import CryptContext
+import hashlib
 from db_api import check_user_credentials
 
 
@@ -13,6 +13,7 @@ from db_api import check_user_credentials
 # If no match, returns "None"
 # -----------------------------
 def get_token(
+        engine,
         secret_key, 
         access_token_expire_minutes, 
         username, 
@@ -21,12 +22,12 @@ def get_token(
 
     pwd_hash = hash_password(password)
 
-    if check_user_credentials(username, pwd_hash):
+    if check_user_credentials(engine, username, pwd_hash):
         expire = datetime.utcnow() + timedelta(minutes=access_token_expire_minutes)
         data={"username": username, "exp": expire}
         return jwt.encode(data, secret_key, algorithm="HS256")
     else:
-        return None
+        return False
 
 
 
@@ -35,7 +36,8 @@ def get_token(
 # Input is password string. Returns hashed password
 # -----------------------------
 def hash_password(password) -> str:
-    return CryptContext(schemes=["bcrypt"], deprecated="auto").hash(password)
+    return hashlib.sha256(password.encode('utf-8')).hexdigest()
+
 
 
 
@@ -57,3 +59,4 @@ def token_valid(
     except:
         pass
     return False
+
