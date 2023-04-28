@@ -1,9 +1,9 @@
 # =========================================================================
-# 
+#
 # VR1FAMILY CHARITY DISTRIBUTION IT SYSTEM
-# 
+#
 # Main entry point for application
-# 
+#
 # =========================================================================
 
 
@@ -15,7 +15,8 @@ from starlette.templating import Jinja2Templates
 from starlette.templating import _TemplateResponse
 import uvicorn
 from sqlalchemy.exc import OperationalError
-
+from src.recipients import PersonID, AidRecipient
+from src.responses import DatabaseActionResponse
 
 # Initialise log:
 import logger
@@ -87,7 +88,7 @@ app.add_middleware(
 def home(
         request: Request
     ) -> _TemplateResponse:
-    
+
     #TODO: Check token validity
 
     log.info("'/' called from: " + str(request.client))
@@ -102,7 +103,7 @@ def home(
 @app.post("/add_new_user/", status_code=201)
 def add_recipient(
         request: Request,
-        user: dict 
+        user: dict
     ) -> dict:
 
     log.info("'/add_new_user/' called from: " + str(request.client))
@@ -111,10 +112,10 @@ def add_recipient(
     from security import hash_password
 
     new_user = User(
-        username= user['username'], 
+        username= user['username'],
         password_hash = hash_password(user['password']),
         access_level = Privileges.USER  # Default privilege level is 'user'
-    ) 
+    )
     try:
         add_new_user(engine, new_user)
         log.info("New user added: " + user['username'])
@@ -130,7 +131,7 @@ def add_recipient(
 
 # =====================
 # API ENDPOINT: CHECK LOG-IN DETAILS & PROVIDE TOKEN
-# It checks user credentials and, if valid, returns a JWT access token 
+# It checks user credentials and, if valid, returns a JWT access token
 # Return object = dictionary {token: string} (or 401 Error if invalid credentials)
 # =====================
 @app.post("/check_login", status_code=200)
@@ -161,7 +162,76 @@ async def login_for_access_token(
 
 
 # =====================
+# API ENDPOINT: Create aid recipients in the system
+# Check JWT access token
+# Take request body as JSON
+# Create entry in the DB
+# Return object = dictionary {error: str|None, id: str|None}
+# =====================
+@app.post("/aid_recipient")
+async def login_for_access_token(
+        recipient: AidRecipient,
+    ) -> dict:
+
+    # TODO
+    # print(recipient)
+
+    response = DatabaseActionResponse(
+        id="123456",
+        error=None
+    )
+
+    return response
+
+
+# =====================
+# API ENDPOINT: Create or overwrite aid recipients in the system
+# Check JWT access token
+# Take request body as JSON
+# Create or overwrite entry in the DB
+# Return object = dictionary {error: str|None, id: str|None}
+# =====================
+@app.put("/aid_recipient")
+async def login_for_access_token(
+        recipient: AidRecipient,
+    ) -> dict:
+
+    # TODO
+    # print(recipient)
+
+    response = DatabaseActionResponse(
+        id="123456",
+        error=None
+    )
+
+    return response
+
+
+# =====================
+# API ENDPOINT: Delete aid recipients in the system
+# Check JWT access token
+# Take request body as JSON
+# Delete entry in the DB
+# Return object = dictionary {error: str|None, id: str|None}
+# =====================
+@app.delete("/aid_recipient")
+async def login_for_access_token(
+        recipient: PersonID,
+    ) -> dict:
+
+    # TODO
+    print(recipient)
+
+    response = DatabaseActionResponse(
+        id="123456",
+        error=None
+    )
+
+    return response
+
+
+# =====================
 #  Run server:
 # =====================
-if __name__ == '__main__': 
+if __name__ == '__main__':
     uvicorn.run(app, host=frontend_host,port=frontend_port)
