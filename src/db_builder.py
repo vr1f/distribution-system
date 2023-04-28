@@ -7,22 +7,33 @@
 # =========================================================================
 
 
-from sqlalchemy import Column,  String, Integer
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy import Column,  String, Integer, Enum
+from sqlalchemy.orm import declarative_base
+import enum
 
 Base  = declarative_base()
 
-# Example class = Aid Recipients:
-class Recipient(Base):
-    __tablename__ = 'recipients'
-    recipient_id  = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String)
-    age = Column(Integer)
-    previous_address = Column(String)
-    total_fam_mem = Column(Integer)
-    partner_name = Column(String)
-    partner_age = Column(String)
-    events = relationship('Event', backref='job')
+
+# =======================
+# PRIVILEGES
+# Helper class for enum user by 'USERS'
+# =======================
+class Privileges(enum.Enum):
+    ADMIN = 1
+    USER = 2
+
+
+# =======================
+# USERS
+# Database class for system users (ie. anyone with a login / access)
+# =======================
+class User(Base):
+    __tablename__ = 'users'
+    username = Column(String, primary_key=True)
+    password_hash = Column(String)
+    access_level = Column(Enum(Privileges))
+
+
 
 def build_db(engine):
 
