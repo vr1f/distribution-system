@@ -1,3 +1,4 @@
+from typing import Union
 from datetime import datetime, timedelta
 from jose import jwt
 import hashlib
@@ -18,7 +19,7 @@ def get_token(
         access_token_expire_minutes, 
         username, 
         password
-    ) -> str | None:
+    ) -> Union[str , None]:
 
     pwd_hash = hash_password(password)
 
