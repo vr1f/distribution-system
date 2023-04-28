@@ -1,0 +1,40 @@
+{%extends 'base.html' %}
+
+{%block content%}
+<h1>Add aid recipient</h1>
+
+<div class="d-inline-flex p-2 bd-highlight">
+    <div id="newRecipientForm">
+        <div class="form-group">
+            <label>First name</label>
+            <input
+                type="text" class="form-control" name="first_name"
+                placeholder="Enter first name", required
+            >
+        </div>
+
+        <div class="form-group">
+            <label>Last name</label>
+            <input
+                type="text" class="form-control" name="last_name"
+                placeholder="Enter last name (optional)"
+            >
+        </div>
+
+        <div class="form-group">
+            <label>Last name</label>
+            <input
+                type="number" class="form-control" name="age"
+                placeholder="Enter age", required
+            >
+        </div>
+
+        <button id="createRecipient" class="btn btn-primary">Submit</button>
+    </div>
+<style>
+
+</style>
+
+<script src="/js/recipients.js"/>
+
+{%endblock content%}

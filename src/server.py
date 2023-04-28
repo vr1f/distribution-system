@@ -10,6 +10,7 @@
 
 # Imports
 from fastapi import FastAPI, Request, HTTPException, status
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.templating import Jinja2Templates
 from starlette.templating import _TemplateResponse
@@ -78,6 +79,13 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+
+# Serving static files for javascript
+app.mount(
+    path="/js",
+    app=StaticFiles(directory="./js"),
+    name="javascript"
 )
 
 
@@ -159,6 +167,26 @@ async def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
     return {"token": token}
+
+
+# =====================
+#  Page to view aid recipients
+# =====================
+@app.get("/aid_recipient")
+def home(
+        request: Request
+    ) -> _TemplateResponse:
+
+    #TODO: Check token validity
+
+    log.info("'/aid_recipient' called from: " + str(request.client))
+
+    html = templates \
+        .TemplateResponse(
+            "recipients.html", {"request": request, "base_href": base_href}
+        )
+
+    return html
 
 
 # =====================
