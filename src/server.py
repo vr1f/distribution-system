@@ -6,7 +6,10 @@
 #
 # =========================================================================
 
-
+from pathlib import Path
+import os
+print(Path.cwd())
+print(os.getcwd())
 
 # Imports
 from fastapi import FastAPI, Request, HTTPException, status
