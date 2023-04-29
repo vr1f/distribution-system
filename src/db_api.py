@@ -9,6 +9,7 @@
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 from db_builder import User
+from db_builder import Aid_Recipient
 
 
 # =======================
@@ -46,3 +47,14 @@ def check_user_credentials(
             return True
         else:
             return False
+
+def add_aid_recipient(
+        engine: Engine,
+        aid_recipient: Aid_Recipient
+    ):
+    Session = sessionmaker(bind=engine)
+    with Session() as session:
+        session.add(aid_recipient)
+        session.commit()
+
+    # ensure right table 
