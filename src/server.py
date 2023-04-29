@@ -6,10 +6,14 @@
 #
 # =========================================================================
 
-from pathlib import Path
-import os
-print(Path.cwd())
-print(os.getcwd())
+# from pathlib import Path
+# import os
+# import sys
+# print(Path.cwd())
+# print(os.getcwd())
+
+# ROOT_DIR = Path.cwd()
+# sys.path.append("..")
 
 # Imports
 from fastapi import FastAPI, Request, HTTPException, status
@@ -19,8 +23,8 @@ from starlette.templating import Jinja2Templates
 from starlette.templating import _TemplateResponse
 import uvicorn
 from sqlalchemy.exc import OperationalError
-from src.recipients import PersonID, AidRecipient
-from src.responses import DatabaseActionResponse
+from recipients import PersonID, AidRecipient
+from responses import DatabaseActionResponse
 
 # Initialise log:
 import logger
