@@ -1,4 +1,5 @@
 src/_test.py
+archive/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
