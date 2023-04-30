@@ -23,16 +23,16 @@ from starlette.templating import Jinja2Templates
 from starlette.templating import _TemplateResponse
 import uvicorn
 from sqlalchemy.exc import OperationalError
-from recipients import PersonID, AidRecipient
-from responses import DatabaseActionResponse
+from support.recipients import PersonID, AidRecipient
+from support.responses import DatabaseActionResponse
 
 # Initialise log:
-import logger
+import support.logger as logger
 log = logger.get_logger()
 
 
 # Get configurations
-from config import get_config
+from support.config import get_config
 config = get_config(log)
 frontend_host = config.FRONTEND_HOST
 frontend_port = config.FRONTEND_PORT
@@ -52,7 +52,7 @@ access_token_expire_minutes = config.ACCESS_TOKEN_EXPIRE_MINUTES
 # Connect to DB
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
-from db_builder import build_db
+from db.db_builder import build_db
 url = URL.create(
     drivername=db_drivername,
     username=db_username,
@@ -91,7 +91,7 @@ app.add_middleware(
 # Serving static files for javascript
 app.mount(
     path="/js",
-    app=StaticFiles(directory="./js"),
+    app=StaticFiles(directory="./src/js"),
     name="javascript"
 )
 
@@ -122,9 +122,9 @@ def add_new_user(
     ) -> dict:
 
     log.info("'/add_new_user/' called from: " + str(request.client))
-    from db_builder import User, Privileges
-    from db_api import add_new_user
-    from security import hash_password
+    from db.db_builder import User, Privileges
+    from db.db_api import add_new_user
+    from support.security import hash_password
 
     new_user = User(
         username= user['username'],
@@ -156,7 +156,7 @@ async def login_for_access_token(
     ) -> dict:
 
     log.info("'/check_login' called from: " + str(request.client))
-    from security import get_token
+    from support.security import get_token
     token = False
     try:
         token = get_token(engine, secret_key, access_token_expire_minutes, details['username'], details['password'])

@@ -8,7 +8,7 @@
 
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
-from db_builder import User
+from db.db_builder import User
 
 
 # =======================
@@ -37,7 +37,7 @@ def check_user_credentials(
         pwd_hash
     ) -> bool:
 
-    from db_builder import User
+    from db.db_builder import User
     Session = sessionmaker(bind=engine)
     with Session() as session:
         query = session.query(User)
