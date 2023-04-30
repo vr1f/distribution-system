@@ -16,16 +16,16 @@ from starlette.templating import Jinja2Templates
 from starlette.templating import _TemplateResponse
 import uvicorn
 from sqlalchemy.exc import OperationalError
-from src.recipients import PersonID, AidRecipient
-from src.responses import DatabaseActionResponse
+from support.recipients import PersonID, AidRecipient
+from support.responses import DatabaseActionResponse
 
 # Initialise log:
-import logger
+import support.logger as logger
 log = logger.get_logger()
 
 
 # Get configurations
-from config import get_config
+from support.config import get_config
 config = get_config(log)
 frontend_host = config.FRONTEND_HOST
 frontend_port = config.FRONTEND_PORT
@@ -45,7 +45,7 @@ access_token_expire_minutes = config.ACCESS_TOKEN_EXPIRE_MINUTES
 # Connect to DB
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
-from db_builder import build_db
+from db.db_builder import build_db
 url = URL.create(
     drivername=db_drivername,
     username=db_username,
@@ -84,7 +84,7 @@ app.add_middleware(
 # Serving static files for javascript
 app.mount(
     path="/js",
-    app=StaticFiles(directory="./js"),
+    app=StaticFiles(directory="src/js"),
     name="javascript"
 )
 
@@ -115,9 +115,9 @@ def add_new_user(
     ) -> dict:
 
     log.info("'/add_new_user/' called from: " + str(request.client))
-    from db_builder import User, Privileges
-    from db_api import add_new_user
-    from security import hash_password
+    from db.db_builder import User, Privileges
+    from db.db_api import add_new_user
+    from support.security import hash_password
 
     new_user = User(
         username= user['username'],
@@ -149,7 +149,7 @@ async def login_for_access_token(
     ) -> dict:
 
     log.info("'/check_login' called from: " + str(request.client))
-    from security import get_token
+    from support.security import get_token
     token = False
     try:
         token = get_token(engine, secret_key, access_token_expire_minutes, details['username'], details['password'])
@@ -202,8 +202,8 @@ async def add_aid_recipient(
         recipient: dict,
     ) -> dict:
 
-    from db_builder import Aid_Recipient_DB
-    from db_api import add_aid_recipient as add_a_r
+    from db.db_builder import Aid_Recipient_DB
+    from db.db_api import add_aid_recipient as add_a_r
     log.info("'/add_new_aid_recipient/' called from: " + str(request.client))
 
     new_recipient = Aid_Recipient_DB(
@@ -264,8 +264,8 @@ async def delete_aid_recipient(
         recipient: dict,
     ) -> dict:
 
-    from db_builder import Aid_Recipient_DB
-    from db_api import delete_aid_recipient as delete_a_r
+    from db.db_builder import Aid_Recipient_DB
+    from db.db_api import delete_aid_recipient as delete_a_r
     log.info("'/delete_aid_recipient/' called from: " + str(request.client))
 
     remove_recipient = Aid_Recipient_DB(
