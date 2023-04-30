@@ -5,6 +5,40 @@
 
 (() => {
 
+  console.log("loaded recipients")
+
+  /** The state for this page */
+  const state = {}
+
+  /** Templates for various elements */
+  state.template = {}
+  state.template.addRecipientFormElements = [
+    {
+      label: "First name", placeholder: "Enter first name", required: true,
+      name:"first_name"
+    },
+    {
+      label: "Last name", placeholder: "Enter last name (optional)",
+      name: "last_name"
+    },
+    {
+      label: "Enter age", placeholder: "Enter age", required: true,
+      name: "age", type: "number"
+    },
+    {
+      label: "Address", placeholder: "Enter address (optional)",
+      name: "address"
+    },
+    {
+      label: "Partner", placeholder: "Enter partner details (optional)",
+      name: "partner"
+    },
+    {
+      label: "Dependents", placeholder: "Enter dependents details (optional)",
+      name: "partner"
+    }
+  ];
+
   /**
     Representing info for a person, this should match `recipients.py`
    */
@@ -30,9 +64,9 @@
     constructor(params) {
       super(params)
       const {
-        address = "NO_KNOWN_ADDRESS",
+        address = undefined, //"NO_KNOWN_ADDRESS",
         common_law_partner = undefined,
-        dependents = []
+        dependents = undefined
       } = params
       this.address = address;
       this.common_law_partner = common_law_partner;
@@ -43,6 +77,13 @@
   class AidRecipientsState {
     constructor() {
       this.aidRecipients = []
+
+      window.dispatchEvent(new CustomEvent("app.register.callback", {
+        detail: {
+          eventName: "recipient.add",
+          callback: this.showRecipientModal.bind(this)
+        }
+      }));
     }
 
     addRecipient(aidRecipient) {
@@ -57,29 +98,30 @@
       alert("To implement");
     }
 
-    showRecipientModal(event) {
+    showRecipientModal(modalElements) {
       // alert("To implement")
+      const {
+        modalHeading,
+        modalBody,
+        modalAction
+      } = modalElements
 
-      const modal = document.getElementById("modal");
-      const modalHeading = document.getElementById("modalHeading");
-      const modalBody = document.getElementById("modalBody");
-      const modalAction = document.getElementById("modalAction");
-
+      // Heading
       modalHeading.innerHTML = "Add new recipient";
+
+      // Form elements in the body
+      const inputForm = window.UiFactory.createModalForm(
+        state.template.addRecipientFormElements
+      )
+      modalBody.innerHTML = ""
+      modalBody.appendChild(inputForm)
+
+      // Submit button
       modalAction.innerHTML = "Submit";
+      modalAction.addEventListener("click", onCreateRecipient)
 
-      const bodyWrapper = document.createElement("div");
-
-      const inputWrapper = document.createElement("div")
-      inputWrapper.innerHTML = "Hello World"
-      bodyWrapper.appendChild(inputWrapper)
-
-      modalBody.replaceWith(bodyWrapper)
     }
   }
-
-  /** The state for this page */
-  const state = {}
 
   /** State of aidRecipients in the system */
   state.aidRecipient = new AidRecipientsState()
@@ -88,31 +130,22 @@
     Adds event listeners to various DOM elements
    */
   const addEventListeners = () => {
-    document
-      .getElementById("createRecipient")
-      .addEventListener("click", onCreateRecipient)
-    ;
-
-    document
-      .getElementById("modal")
-      .addEventListener("show.bs.modal", state.aidRecipient.showRecipientModal)
-    ;
-
     /** @debug */
     document
       .getElementById("testFactory")
       .addEventListener("click", () => {
-        const testData = {headers: ["First Name", "Last Name", "Age"], data: {}}
+        const testData = {
+          headers: ["First Name", "Last Name", "Age"], data: [
+            {a: 1, b:2, c:3},
+            {a: 1, b:2, c:3},
+          ]
+        }
         const tableNode = UiFactory && UiFactory.createTable(testData)
         const el = document.getElementById("factoryTarget")
         el.innerHTML = ""
         el.appendChild(tableNode)
       })
     ;
-  }
-
-  const onShowRecipientModal = () => {
-    alert("To implement")
   }
 
   /**
@@ -130,14 +163,18 @@
   }
 
   /**
-    Validates a form of given `id` by checking all required elements have
-    values.
+   Validates a form of given `id` by checking all required elements have
+  values.
 
-    @param {String} id - ID of the target element.
-    @return {Boolean} `true` if valid.
-   */
+  @param {String} id - ID of the target element.
+  @return {Boolean} `true` if valid.
+  */
   const validateForm = (id) => {
     const formElements = getFormInputsById(id);
+    if (!formElements) {
+      console.error(`Could not valid form with id ${formElements}`)
+    }
+
     const isValid = formElements.reduce((state, inputEl) => {
       // If false, remain false
       if (state == false) {
@@ -146,6 +183,7 @@
 
       // If required and not filled, apply false
       if (inputEl.required && inputEl.value == "") {
+        console.log(inputEl, inputEl.value)
         return false;
       }
 
@@ -155,12 +193,10 @@
   }
 
   /**
-    Submits data to the API endpoint to create an aid recipient
-   */
+   Submits data to the API endpoint to create an aid recipient
+  */
   const onCreateRecipient = () => {
-    // alert("To implement")
-
-    const formId = "newRecipientForm";
+    const formId = "modalForm";
 
     // Get form elements as an array
     const formElements = getFormInputsById(formId);
@@ -187,7 +223,7 @@
     }, {})
 
     // Generate a request to the API
-    const responseJson = fetch("/aid_recipient", {
+    fetch("/aid_recipient", {
         method: "POST",
         headers: new Headers({
           "content-type": "application/json"
@@ -204,6 +240,12 @@
       if (("error" in json) && json.error != undefined) {
         throw new Error(json.error);
       }
+
+      // TODO
+      // Additional behaviour after success
+      console.log(json)
+      alert("Success!")
+
       return json;
     })
     .catch((error) => {
@@ -215,11 +257,6 @@
       // Additional behaviour if required
       return json
     });
-
-    // TODO
-    // Additional behaviour after success
-    console.log(responseJson)
-    alert("Success!")
   }
 
   /**
@@ -229,10 +266,13 @@
     addEventListeners();
 
     /**
-      @debug
+      @debug Dummy state
      */
     state.aidRecipient.addRecipient(
-      new AidRecipient({first_name: "foo", age: 25})
+      new AidRecipient({
+        first_name: "foo", last_name: "bar", age: 25, address: "101 Rescue Lane",
+        common_law_partner: "rick", dependents: "morty"
+      })
     )
 
     console.log(state)
