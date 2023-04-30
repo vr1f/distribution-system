@@ -70,4 +70,53 @@
     return table
   }
 
+  /**
+    A factory that generates input elements for a form.
+    @param {Object} inputEl
+    @param {String} inputEl.label - Label for the input.
+    @param {String} inputEl.placeholder - Placeholder text if required.
+    @param {String} inputEl.id - id attribute if required.
+    @param {String} inputEl.type - type attribute if required.
+    @param {Boolean} inputEl.required - Whether it is a required field.
+   */
+  window.UiFactory.createInputBox = (inputEl) => {
+    const{
+      label:labelText,
+      placeholder = undefined,
+      id = undefined,
+      type = "text",
+      required = false
+    } = inputEl
+
+    // Artefacts
+    const wrapper = document.createElement("div")
+    const label = document.createElement("label")
+    const input = document.createElement("input")
+
+    // Build the input element
+    input.classList.add("form-control")
+    required && input.setAttribute("required", required)
+    id && input.setAttribute("id", id)
+    placeholder && input.setAttribute("placeholder", placeholder)
+    input.setAttribute("type", type)
+
+    // Build the label element
+    label.innerHTML = labelText
+
+    // Build the wrapper
+    wrapper.classList.add("form-group", "pb-3")
+    wrapper.appendChild(label)
+    wrapper.appendChild(input)
+
+    return wrapper
+  }
+
+  /**
+    A factory that generates a form.
+    @param {Array} formElements
+   */
+  window.UiFactory.createModalForm = (formElements) => {
+    alert("To implement")
+  }
+
 })()
