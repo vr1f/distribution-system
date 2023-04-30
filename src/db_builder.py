@@ -46,7 +46,7 @@ class Person(Base):
     )
 class Aid_Recipient_DB(Person):
     __tablename__ = 'aid_recipients'
-    person_id = Column(Integer, ForeignKey("person.person_id"), primary_key=True, ondelete="CASCADE")
+    person_id = Column(Integer, ForeignKey("person.person_id", ondelete="CASCADE"), primary_key=True)
     address = Column(String)
     common_law_partner = Column(ForeignKey("person.person_id"))
     dependents = Column(String)
