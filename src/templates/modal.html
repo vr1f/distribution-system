@@ -1,0 +1,28 @@
+
+{%block modal%}
+
+<!-- A popup modal -->
+<div class="modal fade" id="modal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <!-- Modal header -->
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="modalHeading">id: modalHeading</h1>
+        <button type="button" data-bs-dismiss="modal" class="btn-close"></button>
+      </div>
+
+      <!-- Modal body -->
+      <div class="modal-body" id="modalBody">
+        id: modalBody
+      </div>
+
+      <!-- Modal footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="modalAction">id: modalAction</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{%endblock modal%}
