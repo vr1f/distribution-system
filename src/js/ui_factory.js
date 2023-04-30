@@ -74,18 +74,12 @@
     A factory that generates input elements for a form.
     @param {Object} inputEl
     @param {String} inputEl.label - Label for the input.
-    @param {String} inputEl.placeholder - Placeholder text if required.
-    @param {String} inputEl.id - id attribute if required.
-    @param {String} inputEl.type - type attribute if required.
-    @param {Boolean} inputEl.required - Whether it is a required field.
+    @param {String} inputEl...attrs - Any other attributes to apply to input.
    */
   window.UiFactory.createInputBox = (inputEl) => {
     const{
       label:labelText,
-      placeholder = undefined,
-      id = undefined,
-      type = "text",
-      required = false
+      ...attrs
     } = inputEl
 
     // Artefacts
@@ -95,10 +89,9 @@
 
     // Build the input element
     input.classList.add("form-control")
-    required && input.setAttribute("required", required)
-    id && input.setAttribute("id", id)
-    placeholder && input.setAttribute("placeholder", placeholder)
-    input.setAttribute("type", type)
+    Object.entries(attrs).map(([key, value]) => {
+      input.setAttribute(key, value)
+    })
 
     // Build the label element
     label.innerHTML = labelText
