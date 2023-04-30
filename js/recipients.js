@@ -97,6 +97,18 @@
       .getElementById("modal")
       .addEventListener("show.bs.modal", state.aidRecipient.showRecipientModal)
     ;
+
+    /** @debug */
+    document
+      .getElementById("testFactory")
+      .addEventListener("click", () => {
+        const testData = {headers: ["First Name", "Last Name", "Age"], data: {}}
+        const tableNode = UiFactory && UiFactory.createTable(testData)
+        const el = document.getElementById("factoryTarget")
+        el.innerHTML = ""
+        el.appendChild(tableNode)
+      })
+    ;
   }
 
   const onShowRecipientModal = () => {
