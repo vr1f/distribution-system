@@ -198,12 +198,28 @@ def home(
 # =====================
 @app.post("/aid_recipient")
 async def add_aid_recipient(
-        recipient: AidRecipient,
+        request: Request,
+        recipient: dict,
     ) -> dict:
 
-    # TODO
-    # print(recipient)
+    from db_builder import Aid_Recipient_DB
+    from db_api import add_aid_recipient as add_a_r
+    log.info("'/add_new_aid_recipient/' called from: " + str(request.client))
 
+    new_recipient = Aid_Recipient_DB(
+        first_name=recipient.get('first_name'),
+        last_name=recipient.get('last_name'),
+        age=recipient.get('age'),
+        address=recipient.get('address'),
+        common_law_partner=recipient.get('common_law_partner'),
+        dependents=recipient.get('dependents')
+    )
+    try:
+        add_a_r(engine, new_recipient)
+        log.info("New recipient added: " + str(recipient))
+    except:
+        log.error("Unable to add aid recipient.")
+    
     response = DatabaseActionResponse(
         id="123456",
         error=None
@@ -244,11 +260,22 @@ async def update_aid_recipient(
 # =====================
 @app.delete("/aid_recipient")
 async def delete_aid_recipient(
-        recipient: PersonID,
+        request: Request,
+        recipient: dict,
     ) -> dict:
 
-    # TODO
-    print(recipient)
+    from db_builder import Aid_Recipient_DB
+    from db_api import delete_aid_recipient as delete_a_r
+    log.info("'/delete_aid_recipient/' called from: " + str(request.client))
+
+    remove_recipient = Aid_Recipient_DB(
+        person_id=recipient.get('id')
+    )
+    try:
+        delete_a_r(engine, remove_recipient)
+        log.info("Recipient deleted: " + str(recipient))
+    except:
+        log.error("Unable to delete recipient")
 
     response = DatabaseActionResponse(
         id="123456",

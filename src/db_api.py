@@ -9,7 +9,7 @@
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 from db_builder import User
-from db_builder import Aid_Recipient
+from db_builder import Aid_Recipient_DB
 
 
 # =======================
@@ -47,14 +47,30 @@ def check_user_credentials(
             return True
         else:
             return False
-
+        
+# =======================
+# ADD AID RECIPIENT
+# Creates new aid recipient in the database
+# =======================
 def add_aid_recipient(
         engine: Engine,
-        aid_recipient: Aid_Recipient
+        aidrecipient: Aid_Recipient_DB
     ):
     Session = sessionmaker(bind=engine)
     with Session() as session:
-        session.add(aid_recipient)
+        session.add(aidrecipient)
         session.commit()
 
-    # ensure right table 
+# =======================
+# DELETE AID RECIPIENT
+# Finds and deletes an aid recipient from the database
+# =======================
+def delete_aid_recipient(
+        engine: Engine,
+        aidrecipient: Aid_Recipient_DB
+    ):
+    Session = sessionmaker(bind=engine)
+    with Session() as session:
+        query = session.query(Aid_Recipient_DB)
+        # person_id = query.filter(Aid_Recipient_DB.person_id).first()
+        session.delete(aidrecipient)
