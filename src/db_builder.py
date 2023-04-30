@@ -7,8 +7,8 @@
 # =========================================================================
 
 
-from sqlalchemy import Column,  String, Integer, Enum
-from sqlalchemy.orm import declarative_base
+from sqlalchemy import Column,  String, Integer, Enum, ForeignKey
+from sqlalchemy.orm import declarative_base, relationship
 import enum
 
 Base  = declarative_base()
@@ -33,6 +33,27 @@ class User(Base):
     password_hash = Column(String)
     access_level = Column(Enum(Privileges))
 
+class Person(Base):
+    __tablename__ = 'person'
+    person_id = Column(Integer, primary_key=True, autoincrement=True)
+    first_name = Column(String)
+    last_name = Column(String)
+    age = Column(Integer)
+    children = relationship(
+        "aid_recipients",
+        back_populates="Person",
+        cascade="all, delete",
+    )
+class Aid_Recipient_DB(Person):
+    __tablename__ = 'aid_recipients'
+    person_id = Column(Integer, ForeignKey("person.person_id"), primary_key=True, ondelete="CASCADE")
+    address = Column(String)
+    common_law_partner = Column(ForeignKey("person.person_id"))
+    dependents = Column(String)
+    
+    __mapper_args__ = {
+        'inherit_condition': person_id == Person.person_id
+    }
 
 
 def build_db(engine):
