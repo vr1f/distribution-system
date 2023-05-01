@@ -72,5 +72,7 @@ def delete_aid_recipient(
     Session = sessionmaker(bind=engine)
     with Session() as session:
         query = session.query(Aid_Recipient_DB)
-        # person_id = query.filter(Aid_Recipient_DB.person_id).first()
-        session.delete(aidrecipient)
+        user_to_del = query.filter(Aid_Recipient_DB.person_id == 
+                                   aidrecipient.person_id)
+        session.delete(user_to_del)
+        session.commit()

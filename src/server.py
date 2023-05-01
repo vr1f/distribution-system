@@ -261,7 +261,7 @@ async def update_aid_recipient(
 @app.delete("/aid_recipient")
 async def delete_aid_recipient(
         request: Request,
-        recipient: dict,
+        recipient: PersonID,
     ) -> dict:
 
     from db.db_builder import Aid_Recipient_DB
@@ -269,11 +269,11 @@ async def delete_aid_recipient(
     log.info("'/delete_aid_recipient/' called from: " + str(request.client))
 
     remove_recipient = Aid_Recipient_DB(
-        person_id=recipient.get('id')
+        person_id=recipient.id
     )
     try:
         delete_a_r(engine, remove_recipient)
-        log.info("Recipient deleted: " + str(recipient))
+        log.info("Recipient deleted: " + str(recipient.id))
     except:
         log.error("Unable to delete recipient")
 
