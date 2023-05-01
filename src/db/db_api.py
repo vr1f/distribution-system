@@ -62,6 +62,18 @@ def add_aid_recipient(
         session.commit()
 
 # =======================
+# UPDATE AID RECIPIENT
+# Finds and updates an aid recipient's details
+# =======================
+def update_aid_recipient(
+        engine: Engine,
+        aidrecipient: Aid_Recipient_DB
+    ):
+    Session = sessionmaker(bind=engine)
+    with Session() as session:
+        session.commit()
+
+# =======================
 # DELETE AID RECIPIENT
 # Finds and deletes an aid recipient from the database
 # =======================
@@ -72,5 +84,7 @@ def delete_aid_recipient(
     Session = sessionmaker(bind=engine)
     with Session() as session:
         query = session.query(Aid_Recipient_DB)
-        # person_id = query.filter(Aid_Recipient_DB.person_id).first()
-        session.delete(aidrecipient)
+        user_to_del = query.filter(Aid_Recipient_DB.person_id == 
+                                   aidrecipient.person_id)
+        session.delete(user_to_del)
+        session.commit()
