@@ -1,9 +1,9 @@
 # =========================================================================
-# 
+#
 # VR1FAMILY CHARITY DISTRIBUTION IT SYSTEM
-# 
+#
 # Database APIs, for accessing the database and adding / changing the data.
-# 
+#
 # =========================================================================
 
 from sqlalchemy.engine import Engine
@@ -17,7 +17,7 @@ from db.db_builder import Aid_Recipient_DB
 # Creates new user in database
 # =======================
 def add_new_user(
-        engine: Engine, 
+        engine: Engine,
         user: User
     ):
     Session = sessionmaker(bind=engine)
@@ -34,7 +34,7 @@ def add_new_user(
 # =======================
 def check_user_credentials(
         engine,
-        username, 
+        username,
         pwd_hash
     ) -> bool:
 
@@ -43,11 +43,11 @@ def check_user_credentials(
     with Session() as session:
         query = session.query(User)
         user = query.filter(User.username == username).first()
-        if user.password_hash == pwd_hash:
+        if user is not None and user.password_hash == pwd_hash:
             return True
         else:
             return False
-        
+
 # =======================
 # ADD AID RECIPIENT
 # Creates new aid recipient in the database
@@ -84,7 +84,7 @@ def delete_aid_recipient(
     Session = sessionmaker(bind=engine)
     with Session() as session:
         query = session.query(Aid_Recipient_DB)
-        user_to_del = query.filter(Aid_Recipient_DB.person_id == 
+        user_to_del = query.filter(Aid_Recipient_DB.person_id ==
                                    aidrecipient.person_id)
         session.delete(user_to_del)
         session.commit()
