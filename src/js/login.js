@@ -24,6 +24,7 @@
       .then((json) => {
         const token = json.token;
         setCookie(token, username);
+        window.location = "http://localhost:8000/home";
         return json;
       })
       .catch((error) => {
