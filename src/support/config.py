@@ -31,7 +31,7 @@ class AWSConfig(Config):
         self.TEMPLATES_DIR = "../app/templates"
         self.BASE_HREF = os.environ.get("BASE_HREF")
 
-        aws_region=os.environ.get('AWS_REGION')
+        aws_region="ap-southeast-2"
         db_secret_name=os.environ.get('DB_SECRET_NAME')
         session = boto3.session.Session()
         client = session.client(
@@ -51,6 +51,7 @@ class AWSConfig(Config):
         self.ALGORITHM = "HS256"
         self.ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
+        
 
 # For windows users. Will need to set up postgres locally, and create a new db with details per below:
 class WindowsConfig(Config):
