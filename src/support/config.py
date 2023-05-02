@@ -43,7 +43,7 @@ class AWSConfig(Config):
         
         self.DB_DRIVERNAME="postgresql+psycopg2"
         self.DB_USERNAME="postgres"
-        self.DB_HOST="localhost"
+        self.DB_HOST="vr1-db1.cpmp7xm6rr99.ap-southeast-2.rds.amazonaws.com"
         self.DB_PORT="5432"
         self.DB_DATABASE="vr1_db1"
         self.DB_PASSWORD=input("Enter DB password:")
