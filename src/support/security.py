@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from jose import jwt
 import hashlib
 from db.db_api import check_user_credentials
-
+from fastapi import HTTPException, status, Response
 
 
 # -----------------------------
@@ -15,9 +15,9 @@ from db.db_api import check_user_credentials
 # -----------------------------
 def get_token(
         engine,
-        secret_key, 
-        access_token_expire_minutes, 
-        username, 
+        secret_key,
+        access_token_expire_minutes,
+        username,
         password
     ) -> Union[str , None]:
 
@@ -40,24 +40,35 @@ def hash_password(password) -> str:
     return hashlib.sha256(password.encode('utf-8')).hexdigest()
 
 
+# -----------------------------
+# CHECK ACCESS
+# Logic to review JWT token. Return True if valid token and has not yet expired.
+# -----------------------------
+def check_access(secret_key, request, log):
+    try:
+        token = request.cookies['token'] if 'token' in request.cookies else ""
+        payload = jwt.decode(token, secret_key, algorithms=["HS256"])
+        expiry = datetime.utcfromtimestamp(payload.get("exp"))
+        log.info("Validating token for " + str(payload.get("username"))+ ", expires " + str(expiry))
+        access_granted =  True if expiry > datetime.utcnow() else False
+    except:
+        log.error("Unable to authenticate user.")
+        access_granted = False
+    return access_granted
 
 
 # -----------------------------
 # TOKEN VALIDATOR
-# Validates if a given token is valid by checking the expiry time.
-# If token is valid (ie. if expiry time not yet lapsed), returns True, else returns False.
+# Use at every webpage end point to be behind log-in wall
+# Raises HTTP exceptions if not valid token
 # -----------------------------
-def token_valid(
-        secret_key, token
-    ) -> bool:
+def token_validator(secret_key, request, log):
 
-    try:
-        payload = jwt.decode(token, secret_key, algorithms=["HS256"])
-        expiry = datetime.utcfromtimestamp(payload.get("exp"))
-        print("Validating token for %s, expires %s." % (payload.get("username"), expiry))
-        if expiry > datetime.utcnow():
-            return True
-    except:
-        pass
-    return False
-
+    access_granted = check_access(secret_key, request, log)
+    if not access_granted:
+        log.info("User granted access.")
+        raise HTTPException(
+            status_code=307,
+            detail="Token expired. Please log-in again.",
+            headers={"Location": "/login"},
+        )
