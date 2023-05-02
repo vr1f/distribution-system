@@ -37,9 +37,9 @@ db_host = config.DB_HOST
 db_port = config.DB_PORT
 db_database = config.DB_DATABASE
 db_password = config.DB_PASSWORD
-secret_key = config.SECRET_KEY
-algorithm = config.ALGORITHM
-access_token_expire_minutes = config.ACCESS_TOKEN_EXPIRE_MINUTES
+# secret_key = config.SECRET_KEY
+# algorithm = config.ALGORITHM
+# access_token_expire_minutes = config.ACCESS_TOKEN_EXPIRE_MINUTES
 
 
 # Connect to DB
