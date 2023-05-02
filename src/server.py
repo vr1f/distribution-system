@@ -9,7 +9,7 @@
 
 
 # Imports
-from fastapi import FastAPI, Request, HTTPException, status
+from fastapi import FastAPI, Request, HTTPException, status, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.templating import Jinja2Templates
@@ -18,6 +18,7 @@ import uvicorn
 from sqlalchemy.exc import OperationalError
 from support.recipients import PersonID, AidRecipient
 from support.responses import DatabaseActionResponse
+from support.security import token_validator, check_access
 
 # Initialise log:
 import support.logger as logger
@@ -90,17 +91,51 @@ app.mount(
 
 
 # =====================
-#  Landing Page:
+#  PAGE: Log-in Page:
 # =====================
-@app.get("/")
+@app.get("/login")
 def home(
         request: Request
     ) -> _TemplateResponse:
 
-    #TODO: Check token validity
-
     log.info("'/' called from: " + str(request.client))
-    return templates.TemplateResponse("index.html", {"request": request, "base_href": base_href})
+    if check_access(secret_key, request, log):
+        log.info("User " + str(request.client) + " already logged in. Redirecting to homepage.")
+        return Response(status_code=307, headers={"Location": "/home"})
+    return templates.TemplateResponse("login.html", {"request": request, "base_href": base_href})
+
+
+# =====================
+#  PAGE: Home Page:
+# =====================
+@app.get("/")
+@app.get("/home")
+def home(
+        request: Request
+    ) -> _TemplateResponse:
+
+    log.info("'/home' called from: " + str(request.client))
+    token_validator(secret_key, request, log)
+    return templates.TemplateResponse("home.html", {"request": request, "base_href": base_href})
+
+
+# =====================
+#  PAGE: View Aid recipients
+# =====================
+@app.get("/aid_recipient")
+def home(
+        request: Request
+    ) -> _TemplateResponse:
+
+    log.info("'/aid_recipient' called from: " + str(request.client))
+    token_validator(secret_key, request, log)
+
+    html = templates \
+        .TemplateResponse(
+            "recipients.html", {"request": request, "base_href": base_href}
+        )
+
+    return html
 
 
 # =====================
@@ -161,32 +196,14 @@ async def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
     if not token:
+        log.info("Unauthorised access request from " + str(request.client))
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    log.info("Successful log in from " + str(request.client))
     return {"token": token}
-
-
-# =====================
-#  Page to view aid recipients
-# =====================
-@app.get("/aid_recipient")
-def home(
-        request: Request
-    ) -> _TemplateResponse:
-
-    #TODO: Check token validity
-
-    log.info("'/aid_recipient' called from: " + str(request.client))
-
-    html = templates \
-        .TemplateResponse(
-            "recipients.html", {"request": request, "base_href": base_href}
-        )
-
-    return html
 
 
 # =====================
@@ -219,7 +236,7 @@ async def add_aid_recipient(
         log.info("New recipient added: " + str(recipient))
     except:
         log.error("Unable to add aid recipient.")
-    
+
     response = DatabaseActionResponse(
         id="123456",
         error=None
@@ -261,7 +278,7 @@ async def update_aid_recipient(
 @app.delete("/aid_recipient")
 async def delete_aid_recipient(
         request: Request,
-        recipient: dict,
+        recipient: PersonID,
     ) -> dict:
 
     from db.db_builder import Aid_Recipient_DB
@@ -269,11 +286,11 @@ async def delete_aid_recipient(
     log.info("'/delete_aid_recipient/' called from: " + str(request.client))
 
     remove_recipient = Aid_Recipient_DB(
-        person_id=recipient.get('id')
+        person_id=recipient.id
     )
     try:
         delete_a_r(engine, remove_recipient)
-        log.info("Recipient deleted: " + str(recipient))
+        log.info("Recipient deleted: " + str(recipient.id))
     except:
         log.error("Unable to delete recipient")
 

@@ -1,23 +1,7 @@
-{%extends 'base.html' %}
-{%block content%}
-<div class="d-inline-flex p-2 bd-highlight">
-    <div>
-        <div class="form-group">
-            <label for="email">Email Address</label>
-            <input type="email" id="username" class="form-control" aria-describedby="emailHelp" placeholder="Enter email">
-            <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
-        </div>
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" class="form-control" placeholder="Password">
-        </div>
-        <button id="submit" class="btn btn-primary">Submit</button>
-    </div>
-</div>
-<style>
-</style>
-<script>
-  (() => {
+/**
+  Methods relating to user login
+ */
+(() => {
     const login = async() => {
       const url = "http://localhost:8000/check_login"
       const username = document.getElementById("username").value;
@@ -40,6 +24,8 @@
       .then((json) => {
         const token = json.token;
         setCookie(token, username);
+        // TO DO: Setup endpoint to redirect to home page from login page
+        window.location = "http://localhost:8000/home";
         return json;
       })
       .catch((error) => {
@@ -57,10 +43,11 @@
     const bindButtonActions = () => {
       document.getElementById("submit").addEventListener("click", login)
     }
-
+    
+    /**
+        Run on load
+    */
     window.onload = () => {
       bindButtonActions();
     }
   })()
-</script>
-{%endblock content%}
