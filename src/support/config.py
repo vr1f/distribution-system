@@ -43,9 +43,9 @@ class AWSConfig(Config):
         
         self.DB_DRIVERNAME="postgresql+psycopg2"
         self.DB_USERNAME="postgres"
-        self.DB_HOST="vr1-db1.cpmp7xm6rr99.ap-southeast-2.rds.amazonaws.com"
+        self.DB_HOST="database-1.cpmp7xm6rr99.ap-southeast-2.rds.amazonaws.com"
         self.DB_PORT="5432"
-        self.DB_DATABASE="vr1-db1"
+        self.DB_DATABASE="database-1"
         self.DB_PASSWORD=input("Enter DB password:")
         # self.SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
         # self.ALGORITHM = "HS256"
