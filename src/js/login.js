@@ -24,6 +24,8 @@
       .then((json) => {
         const token = json.token;
         setCookie(token, username);
+        // TO DO: Setup endpoint to redirect to home page from login page
+        window.location = "http://localhost:8000/home";
         return json;
       })
       .catch((error) => {
