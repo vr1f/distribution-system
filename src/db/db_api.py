@@ -8,8 +8,8 @@
 
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
-from db.db_builder import User
-from db.db_builder import Aid_Recipient_DB
+from src.db.db_builder import User
+from src.db.db_builder import Aid_Recipient_DB
 
 
 # =======================
