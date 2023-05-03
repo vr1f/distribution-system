@@ -233,8 +233,11 @@ async def add_aid_recipient(
         )
 
     response = add_a_r(engine, new_recipient)
-    log.info("New recipient added: " + str(recipient))
-    print(response)
+
+    if response.error == None:
+        log.info("New recipient added " + str(recipient))
+    else:
+        log.info("Unable to add recipeint: " + str(response.error))
     return response
 
 # =====================
@@ -278,18 +281,15 @@ async def delete_aid_recipient(
     log.info("'/delete_aid_recipient/' called from: " + str(request.client))
 
     remove_recipient = Aid_Recipient_DB(
-        person_id=recipient.id
+        person_id=recipient.person_id
     )
-    try:
-        delete_a_r(engine, remove_recipient)
-        log.info("Recipient deleted: " + str(recipient.id))
-    except:
-        log.error("Unable to delete recipient")
 
-    response = DatabaseActionResponse(
-        id="123456",
-        error=None
-    )
+    response = delete_a_r(engine, remove_recipient)
+
+    if response.error == None:
+        log.info("Recipient deleted: " + str(recipient))
+    else:
+        log.info("Unable to delete recipeint: " + str(response.error))
 
     return response
 

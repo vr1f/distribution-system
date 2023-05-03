@@ -87,10 +87,16 @@ def delete_aid_recipient(
         engine: Engine,
         aidrecipient: Aid_Recipient_DB
     ):
-    Session = sessionmaker(bind=engine)
-    with Session() as session:
-        query = session.query(Aid_Recipient_DB)
-        user_to_del = query.filter(Aid_Recipient_DB.person_id ==
-                                   aidrecipient.person_id)
-        session.delete(user_to_del)
-        session.commit()
+    response = DatabaseActionResponse(id=aidrecipient.person_id)
+    try:
+        Session = sessionmaker(bind=engine)
+        with Session() as session:
+            query = session.query(Aid_Recipient_DB)
+            user_to_del = query.filter(Aid_Recipient_DB.person_id ==
+                                    aidrecipient.person_id).one()
+            session.delete(user_to_del)
+            session.commit()
+    except Exception as e:
+        response.error = e
+    
+    return response
