@@ -18,7 +18,7 @@ class PersonID(BaseModel):
     Args:
         id (str): Unique record key in the database or other unique identifier.
     """
-    id: str = None
+    person_id: str = None
 
 
 class Person(PersonID):

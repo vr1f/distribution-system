@@ -10,7 +10,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 from db.db_builder import User
 from db.db_builder import Aid_Recipient_DB
-
+from support.responses import DatabaseActionResponse
 
 # =======================
 # ADD NEW USER
@@ -56,11 +56,17 @@ def add_aid_recipient(
         engine: Engine,
         aidrecipient: Aid_Recipient_DB
     ):
-    Session = sessionmaker(bind=engine)
-    with Session() as session:
-        session.add(aidrecipient)
-        session.commit()
+    response = DatabaseActionResponse()
+    try:
+        Session = sessionmaker(bind=engine)
+        with Session() as session:
+            session.add(aidrecipient)
+            session.commit()
+            response.id = aidrecipient.person_id
+    except Exception as e:
+        response.error = e
 
+    return response
 # =======================
 # UPDATE AID RECIPIENT
 # Finds and updates an aid recipient's details

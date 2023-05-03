@@ -216,7 +216,7 @@ async def login_for_access_token(
 @app.post("/aid_recipient")
 async def add_aid_recipient(
         request: Request,
-        recipient: dict,
+        recipient: AidRecipient,
     ) -> dict:
 
     from db.db_builder import Aid_Recipient_DB
@@ -224,26 +224,18 @@ async def add_aid_recipient(
     log.info("'/add_new_aid_recipient/' called from: " + str(request.client))
 
     new_recipient = Aid_Recipient_DB(
-        first_name=recipient.get('first_name'),
-        last_name=recipient.get('last_name'),
-        age=recipient.get('age'),
-        address=recipient.get('address'),
-        common_law_partner=recipient.get('common_law_partner'),
-        dependents=recipient.get('dependents')
-    )
-    try:
-        add_a_r(engine, new_recipient)
-        log.info("New recipient added: " + str(recipient))
-    except:
-        log.error("Unable to add aid recipient.")
+            first_name=recipient.first_name,
+            last_name=recipient.last_name,
+            age=recipient.age,
+            address=recipient.address,
+            common_law_partner=recipient.common_law_partner,
+            dependents=recipient.dependents
+        )
 
-    response = DatabaseActionResponse(
-        id="123456",
-        error=None
-    )
-
+    response = add_a_r(engine, new_recipient)
+    log.info("New recipient added: " + str(recipient))
+    print(response)
     return response
-
 
 # =====================
 # API ENDPOINT: Create or overwrite aid recipients in the system
