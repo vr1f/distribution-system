@@ -3,10 +3,9 @@
  */
 (() => {
     const login = async() => {
-      const url = "http://localhost:8000/check_login"
       const username = document.getElementById("username").value;
       const password = document.getElementById("password").value;
-      const result = await fetch(url, {
+      const result = await fetch("/check_login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -24,7 +23,7 @@
       .then((json) => {
         const token = json.token;
         setCookie(token);
-        window.location = "http://localhost:8000/home";
+        window.location.href = "/home";
         return json;
       })
       .catch((error) => {
