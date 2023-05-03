@@ -28,7 +28,7 @@ class AWSConfig(Config):
 
         self.FRONTEND_HOST = "0.0.0.0" 
         self.FRONTEND_PORT = 80
-        self.TEMPLATES_DIR = "/src/templates"
+        self.TEMPLATES_DIR = os.getcwd() + "/src/templates/"
         self.BASE_HREF = "ec2-3-26-255-162.ap-southeast-2.compute.amazonaws.com"
 
         aws_region="ap-southeast-2"
