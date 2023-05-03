@@ -60,7 +60,7 @@ class WindowsConfig(Config):
 
         self.FRONTEND_HOST = "localhost"
         self.FRONTEND_PORT = 8000
-        self.TEMPLATES_DIR = os.getcwd() + "/src/templates/" 
+        self.TEMPLATES_DIR = os.getcwd() + "/templates/" 
         self.BASE_HREF = "http://localhost:8000"
         self.DB_DRIVERNAME="postgresql+psycopg2"
         self.DB_USERNAME="postgres"
@@ -81,7 +81,7 @@ class AppleConfig(Config):
 
         self.FRONTEND_HOST = "localhost"
         self.FRONTEND_PORT = 8000
-        self.TEMPLATES_DIR = os.getcwd() + "/src/templates/" 
+        self.TEMPLATES_DIR = os.getcwd() + "/templates/" 
         self.BASE_HREF = "http://localhost:8000"
         self.DB_DRIVERNAME="postgresql+psycopg2"
         self.DB_USERNAME="postgres"

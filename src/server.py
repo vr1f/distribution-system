@@ -17,18 +17,18 @@ from starlette.templating import _TemplateResponse
 import uvicorn
 from sqlalchemy.exc import OperationalError
 
-from src.support.recipients import PersonID, AidRecipient
-from src.support.responses import DatabaseActionResponse
-from src.support.security import token_validator, check_access
+from support.recipients import PersonID, AidRecipient
+from support.responses import DatabaseActionResponse
+from support.security import token_validator, check_access
 
 
 # Initialise log:
-import src.support.logger as logger
+import support.logger as logger
 log = logger.get_logger()
 
 
 # Get configurations
-from src.support.config import get_config
+from support.config import get_config
 config = get_config(log)
 frontend_host = config.FRONTEND_HOST
 frontend_port = config.FRONTEND_PORT
@@ -48,7 +48,7 @@ access_token_expire_minutes = config.ACCESS_TOKEN_EXPIRE_MINUTES
 # Connect to DB
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
-from src.db.db_builder import build_db
+from db.db_builder import build_db
 url = URL.create(
     drivername=db_drivername,
     username=db_username,
@@ -87,7 +87,7 @@ app.add_middleware(
 # Serving static files for javascript
 app.mount(
     path="/js",
-    app=StaticFiles(directory="src/js"),
+    app=StaticFiles(directory="js"),
     name="javascript"
 )
 
