@@ -16,9 +16,11 @@ from starlette.templating import Jinja2Templates
 from starlette.templating import _TemplateResponse
 import uvicorn
 from sqlalchemy.exc import OperationalError
+
 from support.recipients import PersonID, AidRecipient
 from support.responses import DatabaseActionResponse
 from support.security import token_validator, check_access
+
 
 # Initialise log:
 import support.logger as logger
@@ -85,7 +87,7 @@ app.add_middleware(
 # Serving static files for javascript
 app.mount(
     path="/js",
-    app=StaticFiles(directory="src/js"),
+    app=StaticFiles(directory="js"),
     name="javascript"
 )
 
