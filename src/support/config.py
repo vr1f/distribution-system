@@ -23,34 +23,35 @@ class Config:
 
 # AWS config should also work for local Docker testing:
 class AWSConfig(Config):
-
+    #TODO: prevent hard code sensitive data
     def __init__(self):
 
         self.FRONTEND_HOST = "0.0.0.0" 
         self.FRONTEND_PORT = 80
-        self.TEMPLATES_DIR = "../app/templates"
-        self.BASE_HREF = os.environ.get("BASE_HREF")
+        self.TEMPLATES_DIR = os.getcwd() + "/templates/"
+        self.BASE_HREF = "ec2-3-27-152-212.ap-southeast-2.compute.amazonaws.com"
 
-        aws_region=os.environ.get('AWS_REGION')
+        aws_region="ap-southeast-2"
         db_secret_name=os.environ.get('DB_SECRET_NAME')
-        session = boto3.session.Session()
-        client = session.client(
-            service_name='secretsmanager',
-            region_name=aws_region
-        )
-        db_response = client.get_secret_value(SecretId=db_secret_name)
-        db_details = json.loads(db_response['SecretString'])
+        # session = boto3.session.Session()
+        # client = session.client(
+        #     service_name='secretsmanager',
+        #     region_name=aws_region
+        # )
+        # db_response = client.get_secret_value(SecretId=db_secret_name)
+        # db_details = json.loads(db_response['SecretString'])
         
         self.DB_DRIVERNAME="postgresql+psycopg2"
-        self.DB_USERNAME= db_details['username']
-        self.DB_HOST = db_details['host']
-        self.DB_PORT = db_details['port']
-        self.DB_DATABASE = db_details['dbname']
-        self.DB_PASSWORD = db_details['password']
+        self.DB_USERNAME="postgres"
+        self.DB_HOST="database-1.cpmp7xm6rr99.ap-southeast-2.rds.amazonaws.com"
+        self.DB_PORT="5432"
+        self.DB_DATABASE="vr1_db1"
+        self.DB_PASSWORD=input("Enter DB password:")
         self.SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
         self.ALGORITHM = "HS256"
         self.ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
+        
 
 # For windows users. Will need to set up postgres locally, and create a new db with details per below:
 class WindowsConfig(Config):
@@ -59,7 +60,7 @@ class WindowsConfig(Config):
 
         self.FRONTEND_HOST = "localhost"
         self.FRONTEND_PORT = 8000
-        self.TEMPLATES_DIR = os.getcwd() + "/src/templates/" 
+        self.TEMPLATES_DIR = os.getcwd() + "/templates/" 
         self.BASE_HREF = "http://localhost:8000"
         self.DB_DRIVERNAME="postgresql+psycopg2"
         self.DB_USERNAME="postgres"
@@ -80,7 +81,7 @@ class AppleConfig(Config):
 
         self.FRONTEND_HOST = "localhost"
         self.FRONTEND_PORT = 8000
-        self.TEMPLATES_DIR = os.getcwd() + "/src/templates/" 
+        self.TEMPLATES_DIR = os.getcwd() + "/templates/" 
         self.BASE_HREF = "http://localhost:8000"
         self.DB_DRIVERNAME="postgresql+psycopg2"
         self.DB_USERNAME="postgres"

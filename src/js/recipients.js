@@ -262,7 +262,8 @@
   /**
     Run on load
    */
-  window.onload = () => {
+  window.addEventListener("load", () => {
+    console.log("recipients.js")
     addEventListeners();
 
     /**
@@ -276,6 +277,5 @@
     )
 
     console.log(state)
-  }
-
+  })
 })()
