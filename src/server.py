@@ -218,7 +218,7 @@ async def login_for_access_token(
 @app.post("/aid_recipient")
 async def add_aid_recipient(
         request: Request,
-        recipient: dict,
+        recipient: AidRecipient,
     ) -> dict:
 
     from db.db_builder import Aid_Recipient_DB
@@ -226,26 +226,21 @@ async def add_aid_recipient(
     log.info("'/add_new_aid_recipient/' called from: " + str(request.client))
 
     new_recipient = Aid_Recipient_DB(
-        first_name=recipient.get('first_name'),
-        last_name=recipient.get('last_name'),
-        age=recipient.get('age'),
-        address=recipient.get('address'),
-        common_law_partner=recipient.get('common_law_partner'),
-        dependents=recipient.get('dependents')
-    )
-    try:
-        add_a_r(engine, new_recipient)
-        log.info("New recipient added: " + str(recipient))
-    except:
-        log.error("Unable to add aid recipient.")
+            first_name=recipient.first_name,
+            last_name=recipient.last_name,
+            age=recipient.age,
+            address=recipient.address,
+            common_law_partner=recipient.common_law_partner,
+            dependents=recipient.dependents
+        )
 
-    response = DatabaseActionResponse(
-        id="123456",
-        error=None
-    )
+    response = add_a_r(engine, new_recipient)
 
+    if response.error == None:
+        log.info("New recipient added " + str(recipient))
+    else:
+        log.info("Unable to add recipeint: " + str(response.error))
     return response
-
 
 # =====================
 # API ENDPOINT: Create or overwrite aid recipients in the system
@@ -256,17 +251,36 @@ async def add_aid_recipient(
 # =====================
 @app.put("/aid_recipient")
 async def update_aid_recipient(
+        request: Request,
         recipient: AidRecipient,
     ) -> dict:
+    print(recipient)
+    from db.db_builder import Aid_Recipient_DB, Person
+    from db.db_api import update_aid_recipient as update_a_r
+    log.info("'/update_aid_recipient/' called from: " + str(request.client))
 
-    # TODO
-    # print(recipient)
+    update_recipient = Aid_Recipient_DB(
+                person_id=recipient.person_id,
+                address=recipient.address,
+                common_law_partner=recipient.common_law_partner,
+                dependents=recipient.dependents
+            )
 
-    response = DatabaseActionResponse(
-        id="123456",
-        error=None
+    update_person = Person(
+        person_id=recipient.person_id,
+        first_name=recipient.first_name,
+        last_name=recipient.last_name,
+        age=recipient.age
     )
 
+    print(update_recipient.first_name)
+    print(update_recipient.age)
+    response = update_a_r(engine, update_recipient, update_person)
+    if response.error == None:
+        log.info("Recipient updated: " + str(recipient.person_id))
+    else:
+        log.info("Unable to update recipeint: " + str(response.error))
+    
     return response
 
 
@@ -288,18 +302,15 @@ async def delete_aid_recipient(
     log.info("'/delete_aid_recipient/' called from: " + str(request.client))
 
     remove_recipient = Aid_Recipient_DB(
-        person_id=recipient.id
+        person_id=recipient.person_id
     )
-    try:
-        delete_a_r(engine, remove_recipient)
-        log.info("Recipient deleted: " + str(recipient.id))
-    except:
-        log.error("Unable to delete recipient")
 
-    response = DatabaseActionResponse(
-        id="123456",
-        error=None
-    )
+    response = delete_a_r(engine, remove_recipient)
+
+    if response.error == None:
+        log.info("Recipient deleted: " + str(recipient))
+    else:
+        log.info("Unable to delete recipeint: " + str(response.error))
 
     return response
 

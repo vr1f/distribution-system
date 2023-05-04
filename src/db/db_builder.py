@@ -43,6 +43,7 @@ class Person(Base):
     first_name = Column(String)
     last_name = Column(String)
     age = Column(Integer)
+    children = relationship('Aid_Recipient_DB', backref='person', passive_deletes=True)
 
 # =======================
 # AID_RECIPIENT_DB
@@ -51,9 +52,9 @@ class Person(Base):
 # =======================
 class Aid_Recipient_DB(Person):
     __tablename__ = 'aid_recipients'
-    person_id = Column(Integer, ForeignKey("person.person_id", ondelete="CASCADE"), primary_key=True)
+    person_id = Column(Integer, ForeignKey("person.person_id", ondelete="CASCADE", onupdate="CASCADE"), primary_key=True)
     address = Column(String)
-    common_law_partner = Column(ForeignKey("person.person_id"))
+    common_law_partner = Column(String)
     dependents = Column(String)
     
     __mapper_args__ = {
