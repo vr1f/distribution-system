@@ -3,10 +3,9 @@
  */
 (() => {
     const login = async() => {
-      const url = "http://localhost:8000/check_login"
       const username = document.getElementById("username").value;
       const password = document.getElementById("password").value;
-      const result = await fetch(url, {
+      const result = await fetch("/check_login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -23,9 +22,8 @@
       })
       .then((json) => {
         const token = json.token;
-        setCookie(token, username);
-        // TO DO: Setup endpoint to redirect to home page from login page
-        window.location = "http://localhost:8000/home";
+        setCookie(token);
+        window.location.href = "/home";
         return json;
       })
       .catch((error) => {
@@ -33,11 +31,12 @@
       })
     }
 
-    const setCookie = (token, username) => {
+    const setCookie = (token) => {
+      const minutes = 60000;
       const currTime = new Date().getTime();
-      const expiryTime = currTime + (60000* 120); // 120 minutes
+      const expiryTime = currTime + (30 * minutes);
       const expiryUTC = new Date(expiryTime).toUTCString();
-      document.cookie = `token=${token}; username=${username}; expiry=${expiryUTC}`;
+      document.cookie = `token=${token}; expires=${expiryUTC}`;
     }
 
     const bindButtonActions = () => {
