@@ -9,8 +9,9 @@
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 from db.db_builder import User
-from db.db_builder import Aid_Recipient_DB
+from db.db_builder import Aid_Recipient_DB, Person
 from support.responses import DatabaseActionResponse
+from sqlalchemy import update
 
 # =======================
 # ADD NEW USER
@@ -73,12 +74,36 @@ def add_aid_recipient(
 # =======================
 def update_aid_recipient(
         engine: Engine,
-        aidrecipient: Aid_Recipient_DB
+        aidrecipient: Aid_Recipient_DB,
+        person: Person
     ):
-    Session = sessionmaker(bind=engine)
-    with Session() as session:
-        session.commit()
+    temp_person = {
+        "person_id":person.person_id,
+        "first_name" :person.first_name,
+        "age":person.age,
+        "last_name":person.last_name
+    }
 
+    temp_ar = {
+        "person_id":aidrecipient.person_id,
+        'address': aidrecipient.address,
+        'common_law_partner' : aidrecipient.common_law_partner,
+        'dependents' : aidrecipient.dependents
+    }
+
+    response = DatabaseActionResponse(id=aidrecipient.person_id)
+    try:
+        Session = sessionmaker(bind=engine)
+        with Session() as session:
+            session.query(Aid_Recipient_DB).filter(Aid_Recipient_DB.person_id ==
+                                    aidrecipient.person_id).update(temp_ar)
+            session.query(Person).filter(Person.person_id ==
+                                    person.person_id).update(temp_person)
+            session.commit()
+    except Exception as e:
+        response.error = e
+
+    return response
 # =======================
 # DELETE AID RECIPIENT
 # Finds and deletes an aid recipient from the database

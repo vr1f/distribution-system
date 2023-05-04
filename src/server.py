@@ -249,17 +249,36 @@ async def add_aid_recipient(
 # =====================
 @app.put("/aid_recipient")
 async def update_aid_recipient(
+        request: Request,
         recipient: AidRecipient,
     ) -> dict:
+    print(recipient)
+    from db.db_builder import Aid_Recipient_DB, Person
+    from db.db_api import update_aid_recipient as update_a_r
+    log.info("'/update_aid_recipient/' called from: " + str(request.client))
 
-    # TODO
-    # print(recipient)
+    update_recipient = Aid_Recipient_DB(
+                person_id=recipient.person_id,
+                address=recipient.address,
+                common_law_partner=recipient.common_law_partner,
+                dependents=recipient.dependents
+            )
 
-    response = DatabaseActionResponse(
-        id="123456",
-        error=None
+    update_person = Person(
+        person_id=recipient.person_id,
+        first_name=recipient.first_name,
+        last_name=recipient.last_name,
+        age=recipient.age
     )
 
+    print(update_recipient.first_name)
+    print(update_recipient.age)
+    response = update_a_r(engine, update_recipient, update_person)
+    if response.error == None:
+        log.info("Recipient updated: " + str(recipient.person_id))
+    else:
+        log.info("Unable to update recipeint: " + str(response.error))
+    
     return response
 
 

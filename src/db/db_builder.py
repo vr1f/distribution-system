@@ -39,7 +39,7 @@ class User(Base):
 # =======================
 class Person(Base):
     __tablename__ = 'person'
-    person_id = Column(Integer, primary_key=True, autoincrement=True)
+    person_id = Column(Integer, primary_key=True, autoincrement=True, onupdate="CASCADE")
     first_name = Column(String)
     last_name = Column(String)
     age = Column(Integer)
@@ -52,7 +52,7 @@ class Person(Base):
 # =======================
 class Aid_Recipient_DB(Person):
     __tablename__ = 'aid_recipients'
-    person_id = Column(Integer, ForeignKey("person.person_id", ondelete="CASCADE"), primary_key=True)
+    person_id = Column(Integer, ForeignKey("person.person_id", ondelete="CASCADE", onupdate="CASCADE"), primary_key=True)
     address = Column(String)
     common_law_partner = Column(String)
     dependents = Column(String)
