@@ -42,11 +42,11 @@
     const bindButtonActions = () => {
       document.getElementById("submit").addEventListener("click", login)
     }
-    
+
     /**
         Run on load
     */
-    window.onload = () => {
+    window.addEventListener("load", () => {
       bindButtonActions();
-    }
+    })
   })()

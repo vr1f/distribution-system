@@ -4,73 +4,26 @@
 
 <div class="container">
   <div class="row mb-5">
-    <h1>Add aid recipient</h1>
+    <h1>Aid recipients</h1>
+  </div>
+
+  <div class="row mb-3">
+    <div>
+      <button
+        class="btn btn-primary"
+        data-bs-toggle="modal"
+        data-bs-target="#modal"
+        app-action="recipient.add"
+      >Add Recipient</button>
+
+      <button id="testFactory" class="btn btn-primary">Test Render Table</button>
+    </div>
   </div>
 
   <div class="row">
-    <div class="col" id="newRecipientForm">
-
-      <h3>Aid recipient details</h3>
-
-      <div class="form-group pb-3">
-        <label>First name</label>
-        <input
-          type="text" class="form-control" name="first_name"
-          placeholder="Enter first name", required
-        >
-      </div>
-
-      <div class="form-group pb-3">
-        <label>Last name</label>
-        <input
-          type="text" class="form-control" name="last_name"
-          placeholder="Enter last name (optional)"
-        >
-      </div>
-
-      <div class="form-group pb-3">
-        <label>Last name</label>
-        <input
-          type="number" class="form-control" name="age"
-          placeholder="Enter age", required
-        >
-      </div>
-
-    </div>
-
-    <div class="col" id="recipientPartnerForm">
-
-      <h3>Partner details</h3>
-
-      <div class="form-group pb-3">
-        <label>First name</label>
-        <input
-          type="text" class="form-control" name="first_name"
-          placeholder="Enter first name", required
-        >
-      </div>
-
-      <div class="form-group pb-3">
-        <label>Last name</label>
-        <input
-          type="text" class="form-control" name="last_name"
-          placeholder="Enter last name (optional)"
-        >
-      </div>
-
-      <div class="form-group pb-3">
-        <label>Last name</label>
-        <input
-          type="number" class="form-control" name="age"
-          placeholder="Enter age", required
-        >
-      </div>
-
-    </div>
-
     <div class="col" id="factoryTarget">
 
-      <h3>Dependents</h3>
+      <h3>id:factoryTarget</h3>
 
       <ul class="list-group">
         <li class="list-group-item">An item</li>
@@ -80,14 +33,6 @@
         <li class="list-group-item">And a fifth one</li>
       </ul>
 
-    </div>
-  </div>
-
-  <div class="row mt-3">
-    <div>
-      <button id="createRecipient" class="btn btn-primary">Submit</button>
-      <button id="addRecipient" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal">Add Recipient</button>
-      <button id="testFactory" class="btn btn-primary">Test Factory</button>
     </div>
   </div>
 </div>

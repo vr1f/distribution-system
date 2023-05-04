@@ -18,8 +18,8 @@
   /**
   Run on load
   */
-  window.onload = () => {
+  window.addEventListener("load", () => {
     bindButtonActions();
-  }
+  })
 
-})() 
+})()
