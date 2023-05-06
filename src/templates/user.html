@@ -1,0 +1,35 @@
+{%extends 'base.html' %}
+
+{%block content%}
+
+<div class="container">
+  <div class="bg-white rounded shadow-sm p-5">
+    <div class="mb-1">
+      <div class="mb-5 mx-auto text-center">
+        <h3 class="display-6">Register New User</h3>
+      </div>
+    </div>
+    <div>
+      <div class="mb-2">
+        <label>Username</label>
+        <input id="username" type="text" class="form-control">
+      </div>
+      <div class="mb-2">
+        <label>Password</label>
+        <input id="password" type="text" class="form-control">
+      </div>
+      <select id="privilege" class="form-select mb-2">
+        <option selected value="0">Select privilege</option>
+        <option value="2">User</option>
+        <option value="1">Admin</option>
+      </select>
+      <div class="text-center mt-4">
+        <button type="button" id="submit" class="btn btn-primary btn-block rounded-pill shadow-sm"> Confirm
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/user.js"></script>
+{%endblock content%}

@@ -139,19 +139,36 @@ def home(
 
     return html
 
+# =====================
+#  PAGE: View User Registration
+# =====================
+@app.get("/add_new_user")
+def home(
+        request: Request
+    ) -> _TemplateResponse:
+
+    log.info("'/add_new_user' called from: " + str(request.client))
+    token_validator(secret_key, request, log)
+
+    html = templates \
+        .TemplateResponse(
+            "user.html", {"request": request, "base_href": base_href}
+        )
+
+    return html
 
 # =====================
 # API ENDPOINT: ADD NEW USER
 # Add new system user
 # Parameters = dictionary containing fields: {'username':..., 'password':...}
 # =====================
-@app.post("/add_new_user/", status_code=201)
+@app.post("/add_new_user", status_code=201)
 def add_new_user(
         request: Request,
         user: dict
     ) -> dict:
 
-    log.info("'/add_new_user/' called from: " + str(request.client))
+    log.info("'/add_new_user' called from: " + str(request.client))
     from db.db_builder import User, Privileges
     from db.db_api import add_new_user
     from support.security import hash_password
