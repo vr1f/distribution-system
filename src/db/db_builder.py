@@ -28,6 +28,11 @@ class Size(enum.Enum):
     LARGE = 'L'
     XLarge = 'XL'
 
+class Status(enum.Enum):
+    LOW = "Low"
+    MEDIUM = 'Medium'
+    HIGH = "High"
+
 # =======================
 # USERS
 # Database class for system users (ie. anyone with a login / access)
@@ -73,6 +78,7 @@ class Categories():
     __tablename__ = 'category'
     category_id = Column(Integer, primary_key=True, autoincrement=True, onupdate="CASCADE")
     category_name = Column(String)
+    status = Column(Enum(Status))
 
 # =======================
 # ITEM
@@ -111,15 +117,14 @@ class Clothing_Item(Item):
     item_id = Column(Integer, ForeignKey("item.item_id", ondelete="CASCADE", onupdate="CASCADE"), primary_key=True)
     size = Column(Enum(Size))
     brand = Column(String)
-    __mapper_args__ = {
-'inherit_condition': item_id == Item.item_id}
+    __mapper_args__ = {'inherit_condition': item_id == Item.item_id}
 
 # =======================
 # AID_KIT
 # Aid kits that include a combination of items
 # Each aid kit has a name and description
 # =======================
-class Aid_Kit():
+class Aid_Kit(Base):
     __tablename__ = 'aid_kit'
     aid_kit_id = Column(Integer, primary_key=True, autoincrement=True, onupdate="CASCADE")
     aidkit_name = Column(String)
@@ -131,7 +136,7 @@ class Aid_Kit():
 # Row is an item that belongs to a specific aid kit and
 # includes quantity of the items in the kit
 # =======================
-class Aid_Kit_Item():
+class Aid_Kit_Item(Base):
     __tablename__ = 'aid_kit_item'
     id = Column(Integer, primary_key=True, autoincrement=True, onupdate="CASCADE")
     aid_kit_id = Column(Integer, ForeignKey("aid_kit.aid_kit_id", ondelete="CASCADE", onupdate="CASCADE"))
