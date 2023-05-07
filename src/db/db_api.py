@@ -8,7 +8,7 @@
 
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
-from db.db_builder import User
+from db.db_builder import User, Privileges
 from db.db_builder import Aid_Recipient_DB, Person
 from support.responses import DatabaseActionResponse
 from sqlalchemy import update
@@ -24,6 +24,34 @@ def add_new_user(
     Session = sessionmaker(bind=engine)
     with Session() as session:
         session.add(user)
+        session.commit()
+
+# =======================
+# ADD DEFAULT USER & ADMIN
+# For dev purposes - called on start-up
+# =======================
+def add_default_user_admin(
+        engine: Engine
+    ):
+
+    from support.security import hash_password
+
+    default_user = User(
+        username= "user",
+        password_hash = hash_password("password"),
+        access_level = "USER"
+    )
+
+    default_admin = User(
+        username= "admin",
+        password_hash = hash_password("password"),
+        access_level = "ADMIN"
+    )
+
+    Session = sessionmaker(bind=engine)
+    with Session() as session:
+        session.add(default_user)
+        session.add(default_admin)
         session.commit()
 
 # =======================
@@ -45,6 +73,24 @@ def check_user_credentials(
         query = session.query(User)
         user = query.filter(User.username == username).first()
         if user is not None and user.password_hash == pwd_hash:
+            return True
+        else:
+            return False
+
+# =======================
+# CHECK USER IS ADMIN
+# =======================
+def check_user_is_admin(
+        engine,
+        username
+    ) -> bool:
+
+    from db.db_builder import User
+    Session = sessionmaker(bind=engine)
+    with Session() as session:
+        query = session.query(User)
+        user = query.filter(User.username == username).first()
+        if user.access_level == Privileges.ADMIN:
             return True
         else:
             return False
@@ -123,5 +169,5 @@ def delete_aid_recipient(
             session.commit()
     except Exception as e:
         response.error = e
-    
+
     return response

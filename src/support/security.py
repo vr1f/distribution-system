@@ -3,8 +3,8 @@ from datetime import datetime, timedelta
 from jose import jwt
 import hashlib
 
-from db.db_api import check_user_credentials
-
+from db.db_api import check_user_credentials, check_user_is_admin
+from db.db_builder import Privileges
 from fastapi import HTTPException, status, Response
 
 
@@ -27,7 +27,8 @@ def get_token(
 
     if check_user_credentials(engine, username, pwd_hash):
         expire = datetime.utcnow() + timedelta(minutes=access_token_expire_minutes)
-        data={"username": username, "exp": expire}
+        access_level = Privileges.ADMIN.value if check_user_is_admin(engine, username) else Privileges.USER.value
+        data={"username": username, "exp": expire, "access_level": access_level}
         return jwt.encode(data, secret_key, algorithm="HS256")
     else:
         return False
@@ -74,3 +75,21 @@ def token_validator(secret_key, request, log):
             detail="Token expired. Please log-in again.",
             headers={"Location": "/login"},
         )
+
+# -----------------------------
+# CHECK ADMIN
+# Check if token is admin level access. If admin, return True.
+# -----------------------------
+def check_admin(secret_key, request, log):
+    try:
+        token = request.cookies['token'] if 'token' in request.cookies else ""
+        payload = jwt.decode(token, secret_key, algorithms=["HS256"])
+        if payload.get("access_level") == Privileges.ADMIN.value:
+            admin = True
+            log.info("Valid admin user.")
+        else:
+            admin = False
+    except:
+        log.error("Unable to authenticate admin.")
+        admin = False
+    return admin
