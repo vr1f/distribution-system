@@ -18,7 +18,7 @@ import uvicorn
 from sqlalchemy.exc import OperationalError, IntegrityError
 from support.recipients import PersonID, AidRecipient
 from support.responses import DatabaseActionResponse
-from support.security import token_validator, check_access
+from support.security import token_validator, check_access, check_admin
 
 
 # Initialise log:
@@ -102,7 +102,7 @@ app.mount(
 #  PAGE: Log-in Page:
 # =====================
 @app.get("/login")
-def home(
+def login(
         request: Request
     ) -> _TemplateResponse:
 
@@ -125,6 +125,20 @@ def home(
     log.info("'/home' called from: " + str(request.client))
     token_validator(secret_key, request, log)
     return templates.TemplateResponse("home.html", {"request": request, "base_href": base_href})
+
+# =====================
+#  PAGE: Admin Page:
+# =====================
+@app.get("/admin")
+def admin(
+        request: Request
+    ) -> _TemplateResponse:
+
+    log.info("'/admin' called from: " + str(request.client))
+    token_validator(secret_key, request, log)
+    is_admin = check_admin(secret_key, request, log)
+    return templates.TemplateResponse("admin.html", {"request": request, "base_href": base_href, "is_admin": is_admin})
+
 
 
 # =====================
@@ -277,7 +291,7 @@ async def update_aid_recipient(
         request: Request,
         recipient: AidRecipient,
     ) -> dict:
-    print(recipient)
+
     from db.db_builder import Aid_Recipient_DB, Person
     from db.db_api import update_aid_recipient as update_a_r
     log.info("'/update_aid_recipient/' called from: " + str(request.client))
@@ -296,8 +310,6 @@ async def update_aid_recipient(
         age=recipient.age
     )
 
-    print(update_recipient.first_name)
-    print(update_recipient.age)
     response = update_a_r(engine, update_recipient, update_person)
     if response.error == None:
         log.info("Recipient updated: " + str(recipient.person_id))

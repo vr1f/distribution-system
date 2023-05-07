@@ -1,0 +1,26 @@
+{%extends 'base.html' %}
+
+{%block content%}
+
+{% if is_admin %}
+
+<div class="d-flex flex-column text-bg" style="width: 280px;">
+
+<p>Put all administrator content on this page:</p>
+<p>eg:</p>
+<p>1. Add new user function</p>
+<p>2. Set the number of predefined attempts a user can attempt log in before locks them out. (eg. integer from 0 -> 100)</p>
+<p>3. Set the lock out time period if the user is locked out (eg: float in hours from 0.0 upwards)</p>
+<p>4. (Anything else admin-related?)</p>
+
+</div>
+
+{% else %}
+
+<p>
+You are not authorised to view administrator content.
+</p>
+
+{% endif %}
+
+{%endblock content%}

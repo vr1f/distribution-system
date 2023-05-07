@@ -75,3 +75,21 @@ def token_validator(secret_key, request, log):
             detail="Token expired. Please log-in again.",
             headers={"Location": "/login"},
         )
+
+# -----------------------------
+# CHECK ADMIN
+# Check if token is admin level access. If admin, return True.
+# -----------------------------
+def check_admin(secret_key, request, log):
+    try:
+        token = request.cookies['token'] if 'token' in request.cookies else ""
+        payload = jwt.decode(token, secret_key, algorithms=["HS256"])
+        if payload.get("access_level") == Privileges.ADMIN.value:
+            admin = True
+            log.info("Valid admin user.")
+        else:
+            admin = False
+    except:
+        log.error("Unable to authenticate admin.")
+        admin = False
+    return admin
