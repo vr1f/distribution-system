@@ -15,8 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.templating import Jinja2Templates
 from starlette.templating import _TemplateResponse
 import uvicorn
-from sqlalchemy.exc import OperationalError
-
+from sqlalchemy.exc import OperationalError, IntegrityError
 from support.recipients import PersonID, AidRecipient
 from support.responses import DatabaseActionResponse
 from support.security import token_validator, check_access
@@ -69,8 +68,8 @@ from db.db_api import add_default_user_admin
 try:
     add_default_user_admin(engine)
     log.info("Added default user and admin profiles to db.")
-except:
-    log.error("Unable to add default user and admin profiles.")
+except IntegrityError:
+    log.info("Default admin and user profiles already exist.")
 
 # Start FastAPI app:
 app = FastAPI()
