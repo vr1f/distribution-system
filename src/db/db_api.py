@@ -27,6 +27,34 @@ def add_new_user(
         session.commit()
 
 # =======================
+# ADD DEFAULT USER & ADMIN
+# For dev purposes - called on start-up
+# =======================
+def add_default_user_admin(
+        engine: Engine
+    ):
+
+    from support.security import hash_password
+
+    default_user = User(
+        username= "user",
+        password_hash = hash_password("password"),
+        access_level = "USER"
+    )
+
+    default_admin = User(
+        username= "admin",
+        password_hash = hash_password("password"),
+        access_level = "ADMIN"
+    )
+
+    Session = sessionmaker(bind=engine)
+    with Session() as session:
+        session.add(default_user)
+        session.add(default_admin)
+        session.commit()
+
+# =======================
 # CHECK USER CREDENTIALS
 # This function is used by the security.py module to check if the username and password are valid
 # Parameters are username (string) and pwd_hash (string)
@@ -123,5 +151,5 @@ def delete_aid_recipient(
             session.commit()
     except Exception as e:
         response.error = e
-    
+
     return response

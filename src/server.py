@@ -64,6 +64,13 @@ try:
 except OperationalError:
     log.critical("Failed to connect to database.", exc_info=1)
 
+# Add default user and admin profiles (for dev purposes)
+from db.db_api import add_default_user_admin
+try:
+    add_default_user_admin(engine)
+    log.info("Added default user and admin profiles to db.")
+except:
+    log.error("Unable to add default user and admin profiles.")
 
 # Start FastAPI app:
 app = FastAPI()
@@ -176,7 +183,7 @@ def add_new_user(
     new_user = User(
         username= user['username'],
         password_hash = hash_password(user['password']),
-        access_level = Privileges.USER  # Default privilege level is 'user'
+        access_level = "ADMIN" if user['privilege'] == "1" else "USER"
     )
     try:
         add_new_user(engine, new_user)
@@ -297,7 +304,6 @@ async def update_aid_recipient(
         log.info("Recipient updated: " + str(recipient.person_id))
     else:
         log.info("Unable to update recipeint: " + str(response.error))
-    
     return response
 
 
