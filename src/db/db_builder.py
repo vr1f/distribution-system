@@ -33,22 +33,28 @@ class User(Base):
     password_hash = Column(String)
     access_level = Column(Enum(Privileges))
 
+# =======================
+# PERSON
+# Database class for persons. Used by Aid Recipient and Aid Donor child classes
+# =======================
 class Person(Base):
     __tablename__ = 'person'
-    person_id = Column(Integer, primary_key=True, autoincrement=True)
+    person_id = Column(Integer, primary_key=True, autoincrement=True, onupdate="CASCADE")
     first_name = Column(String)
     last_name = Column(String)
     age = Column(Integer)
-    children = relationship(
-        "aid_recipients",
-        back_populates="Person",
-        cascade="all, delete",
-    )
+    children = relationship('Aid_Recipient_DB', backref='person', passive_deletes=True)
+
+# =======================
+# AID_RECIPIENT_DB
+# Inherits person and collects additional details
+# PK is a person_id from the Person table
+# =======================
 class Aid_Recipient_DB(Person):
     __tablename__ = 'aid_recipients'
-    person_id = Column(Integer, ForeignKey("person.person_id", ondelete="CASCADE"), primary_key=True)
+    person_id = Column(Integer, ForeignKey("person.person_id", ondelete="CASCADE", onupdate="CASCADE"), primary_key=True)
     address = Column(String)
-    common_law_partner = Column(ForeignKey("person.person_id"))
+    common_law_partner = Column(String)
     dependents = Column(String)
     
     __mapper_args__ = {

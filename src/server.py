@@ -9,23 +9,26 @@
 
 
 # Imports
-from fastapi import FastAPI, Request, HTTPException, status
+from fastapi import FastAPI, Request, HTTPException, status, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.templating import Jinja2Templates
 from starlette.templating import _TemplateResponse
 import uvicorn
 from sqlalchemy.exc import OperationalError
-from src.recipients import PersonID, AidRecipient
-from src.responses import DatabaseActionResponse
+
+from support.recipients import PersonID, AidRecipient
+from support.responses import DatabaseActionResponse
+from support.security import token_validator, check_access
+
 
 # Initialise log:
-import logger
+import support.logger as logger
 log = logger.get_logger()
 
 
 # Get configurations
-from config import get_config
+from support.config import get_config
 config = get_config(log)
 frontend_host = config.FRONTEND_HOST
 frontend_port = config.FRONTEND_PORT
@@ -45,7 +48,7 @@ access_token_expire_minutes = config.ACCESS_TOKEN_EXPIRE_MINUTES
 # Connect to DB
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
-from db_builder import build_db
+from db.db_builder import build_db
 url = URL.create(
     drivername=db_drivername,
     username=db_username,
@@ -84,40 +87,91 @@ app.add_middleware(
 # Serving static files for javascript
 app.mount(
     path="/js",
-    app=StaticFiles(directory="./js"),
+    app=StaticFiles(directory="js"),
     name="javascript"
 )
 
 
 # =====================
-#  Landing Page:
+#  PAGE: Log-in Page:
 # =====================
-@app.get("/")
+@app.get("/login")
 def home(
         request: Request
     ) -> _TemplateResponse:
 
-    #TODO: Check token validity
-
     log.info("'/' called from: " + str(request.client))
-    return templates.TemplateResponse("index.html", {"request": request, "base_href": base_href})
+    if check_access(secret_key, request, log):
+        log.info("User " + str(request.client) + " already logged in. Redirecting to homepage.")
+        return Response(status_code=307, headers={"Location": "/home"})
+    return templates.TemplateResponse("login.html", {"request": request, "base_href": base_href})
 
+
+# =====================
+#  PAGE: Home Page:
+# =====================
+@app.get("/")
+@app.get("/home")
+def home(
+        request: Request
+    ) -> _TemplateResponse:
+
+    log.info("'/home' called from: " + str(request.client))
+    token_validator(secret_key, request, log)
+    return templates.TemplateResponse("home.html", {"request": request, "base_href": base_href})
+
+
+# =====================
+#  PAGE: View Aid recipients
+# =====================
+@app.get("/aid_recipient")
+def home(
+        request: Request
+    ) -> _TemplateResponse:
+
+    log.info("'/aid_recipient' called from: " + str(request.client))
+    token_validator(secret_key, request, log)
+
+    html = templates \
+        .TemplateResponse(
+            "recipients.html", {"request": request, "base_href": base_href}
+        )
+
+    return html
+
+# =====================
+#  PAGE: View User Registration
+# =====================
+@app.get("/add_new_user")
+def home(
+        request: Request
+    ) -> _TemplateResponse:
+
+    log.info("'/add_new_user' called from: " + str(request.client))
+    token_validator(secret_key, request, log)
+
+    html = templates \
+        .TemplateResponse(
+            "user.html", {"request": request, "base_href": base_href}
+        )
+
+    return html
 
 # =====================
 # API ENDPOINT: ADD NEW USER
 # Add new system user
 # Parameters = dictionary containing fields: {'username':..., 'password':...}
 # =====================
-@app.post("/add_new_user/", status_code=201)
+@app.post("/add_new_user", status_code=201)
 def add_new_user(
         request: Request,
         user: dict
     ) -> dict:
 
-    log.info("'/add_new_user/' called from: " + str(request.client))
-    from db_builder import User, Privileges
-    from db_api import add_new_user
-    from security import hash_password
+    log.info("'/add_new_user' called from: " + str(request.client))
+    from db.db_builder import User, Privileges
+    from db.db_api import add_new_user
+    from support.security import hash_password
 
     new_user = User(
         username= user['username'],
@@ -149,7 +203,7 @@ async def login_for_access_token(
     ) -> dict:
 
     log.info("'/check_login' called from: " + str(request.client))
-    from security import get_token
+    from support.security import get_token
     token = False
     try:
         token = get_token(engine, secret_key, access_token_expire_minutes, details['username'], details['password'])
@@ -161,32 +215,14 @@ async def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
     if not token:
+        log.info("Unauthorised access request from " + str(request.client))
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    log.info("Successful log in from " + str(request.client))
     return {"token": token}
-
-
-# =====================
-#  Page to view aid recipients
-# =====================
-@app.get("/aid_recipient")
-def home(
-        request: Request
-    ) -> _TemplateResponse:
-
-    #TODO: Check token validity
-
-    log.info("'/aid_recipient' called from: " + str(request.client))
-
-    html = templates \
-        .TemplateResponse(
-            "recipients.html", {"request": request, "base_href": base_href}
-        )
-
-    return html
 
 
 # =====================
@@ -199,34 +235,29 @@ def home(
 @app.post("/aid_recipient")
 async def add_aid_recipient(
         request: Request,
-        recipient: dict,
+        recipient: AidRecipient,
     ) -> dict:
 
-    from db_builder import Aid_Recipient_DB
-    from db_api import add_aid_recipient as add_a_r
+    from db.db_builder import Aid_Recipient_DB
+    from db.db_api import add_aid_recipient as add_a_r
     log.info("'/add_new_aid_recipient/' called from: " + str(request.client))
 
     new_recipient = Aid_Recipient_DB(
-        first_name=recipient.get('first_name'),
-        last_name=recipient.get('last_name'),
-        age=recipient.get('age'),
-        address=recipient.get('address'),
-        common_law_partner=recipient.get('common_law_partner'),
-        dependents=recipient.get('dependents')
-    )
-    try:
-        add_a_r(engine, new_recipient)
-        log.info("New recipient added: " + str(recipient))
-    except:
-        log.error("Unable to add aid recipient.")
-    
-    response = DatabaseActionResponse(
-        id="123456",
-        error=None
-    )
+            first_name=recipient.first_name,
+            last_name=recipient.last_name,
+            age=recipient.age,
+            address=recipient.address,
+            common_law_partner=recipient.common_law_partner,
+            dependents=recipient.dependents
+        )
 
+    response = add_a_r(engine, new_recipient)
+
+    if response.error == None:
+        log.info("New recipient added " + str(recipient))
+    else:
+        log.info("Unable to add recipeint: " + str(response.error))
     return response
-
 
 # =====================
 # API ENDPOINT: Create or overwrite aid recipients in the system
@@ -237,17 +268,36 @@ async def add_aid_recipient(
 # =====================
 @app.put("/aid_recipient")
 async def update_aid_recipient(
+        request: Request,
         recipient: AidRecipient,
     ) -> dict:
+    print(recipient)
+    from db.db_builder import Aid_Recipient_DB, Person
+    from db.db_api import update_aid_recipient as update_a_r
+    log.info("'/update_aid_recipient/' called from: " + str(request.client))
 
-    # TODO
-    # print(recipient)
+    update_recipient = Aid_Recipient_DB(
+                person_id=recipient.person_id,
+                address=recipient.address,
+                common_law_partner=recipient.common_law_partner,
+                dependents=recipient.dependents
+            )
 
-    response = DatabaseActionResponse(
-        id="123456",
-        error=None
+    update_person = Person(
+        person_id=recipient.person_id,
+        first_name=recipient.first_name,
+        last_name=recipient.last_name,
+        age=recipient.age
     )
 
+    print(update_recipient.first_name)
+    print(update_recipient.age)
+    response = update_a_r(engine, update_recipient, update_person)
+    if response.error == None:
+        log.info("Recipient updated: " + str(recipient.person_id))
+    else:
+        log.info("Unable to update recipeint: " + str(response.error))
+    
     return response
 
 
@@ -261,26 +311,23 @@ async def update_aid_recipient(
 @app.delete("/aid_recipient")
 async def delete_aid_recipient(
         request: Request,
-        recipient: dict,
+        recipient: PersonID,
     ) -> dict:
 
-    from db_builder import Aid_Recipient_DB
-    from db_api import delete_aid_recipient as delete_a_r
+    from db.db_builder import Aid_Recipient_DB
+    from db.db_api import delete_aid_recipient as delete_a_r
     log.info("'/delete_aid_recipient/' called from: " + str(request.client))
 
     remove_recipient = Aid_Recipient_DB(
-        person_id=recipient.get('id')
+        person_id=recipient.person_id
     )
-    try:
-        delete_a_r(engine, remove_recipient)
-        log.info("Recipient deleted: " + str(recipient))
-    except:
-        log.error("Unable to delete recipient")
 
-    response = DatabaseActionResponse(
-        id="123456",
-        error=None
-    )
+    response = delete_a_r(engine, remove_recipient)
+
+    if response.error == None:
+        log.info("Recipient deleted: " + str(recipient))
+    else:
+        log.info("Unable to delete recipeint: " + str(response.error))
 
     return response
 

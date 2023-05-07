@@ -18,7 +18,7 @@ class PersonID(BaseModel):
     Args:
         id (str): Unique record key in the database or other unique identifier.
     """
-    id: str = None
+    person_id: int = None
 
 
 class Person(PersonID):
@@ -32,7 +32,7 @@ class Person(PersonID):
     """
     first_name: str
     last_name: str = NO_LAST_NAME
-    age: float
+    age: int
 
 
 class AidRecipient(Person):
@@ -46,6 +46,6 @@ class AidRecipient(Person):
         common_law_partner (Person): Recipient's partner.
         dependents (List of Person): Recipient's dependents (eg. kids).
     """
-    address: str = None #NO_KNOWN_ADDRESS
+    address: str = NO_KNOWN_ADDRESS
     common_law_partner: Person = None
-    dependents: List[Person] = None #[]
+    dependents: List[Person] = None
