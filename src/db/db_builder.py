@@ -74,7 +74,7 @@ class Aid_Recipient_DB(Person):
 # Defines a list of categories
 # Each aid item belongs to a category
 # =======================
-class Categories():
+class Categories(Base):
     __tablename__ = 'category'
     category_id = Column(Integer, primary_key=True, autoincrement=True, onupdate="CASCADE")
     category_name = Column(String)
