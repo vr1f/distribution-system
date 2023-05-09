@@ -93,3 +93,28 @@ def check_admin(secret_key, request, log):
         log.error("Unable to authenticate admin.")
         admin = False
     return admin
+
+# -----------------------------
+# LOG FAILED ATTEMPT
+# Log a failed log-in attempt
+# -----------------------------
+def log_failed_login_attempt(username, log):
+    pass
+    # TODO: Record failed log in attempt
+    # TODO: Also, if latest is within lock out period, then add user to lock out list.
+
+# -----------------------------
+# GET REMAINING LOGIN ATTEMPTS
+# Return the number of valid login attempts for user
+# -----------------------------
+def get_remaining_login_attempts(username, log):
+    # TODO: Get the number of remaining login attempts
+    return 2
+
+# -----------------------------
+# GET LOCKED OUT TIME
+# Check if a user has a lock out time, and return it.
+# -----------------------------
+def get_locked_out_until(username, log):
+    # "TODO: Check if user has a lock out time, and return time.
+    return None
