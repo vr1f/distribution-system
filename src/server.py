@@ -64,12 +64,21 @@ except OperationalError:
     log.critical("Failed to connect to database.", exc_info=1)
 
 # Add default user and admin profiles (for dev purposes)
-from db.db_api import add_default_user_admin
+from db.db_api import add_default_user_admin, add_default_admin_settings
 try:
     add_default_user_admin(engine)
     log.info("Added default user and admin profiles to db.")
+    add_default_admin_settings(engine)
+    log.info("Checked default admin settings.")
 except IntegrityError:
     log.info("Default admin and user profiles already exist.")
+
+# Check / add default admin settings:
+try:
+    add_default_admin_settings(engine)
+    log.info("Checked default admin settings.")
+except:
+    log.error("Error checking default admin settings.")
 
 # Start FastAPI app:
 app = FastAPI()
