@@ -64,12 +64,21 @@ except OperationalError:
     log.critical("Failed to connect to database.", exc_info=1)
 
 # Add default user and admin profiles (for dev purposes)
-from db.db_api import add_default_user_admin
+from db.db_api import add_default_user_admin, add_default_admin_settings
 try:
     add_default_user_admin(engine)
     log.info("Added default user and admin profiles to db.")
+    add_default_admin_settings(engine)
+    log.info("Checked default admin settings.")
 except IntegrityError:
     log.info("Default admin and user profiles already exist.")
+
+# Check / add default admin settings:
+try:
+    add_default_admin_settings(engine)
+    log.info("Checked default admin settings.")
+except:
+    log.error("Error checking default admin settings.")
 
 # Start FastAPI app:
 app = FastAPI()
@@ -140,7 +149,23 @@ def admin(
     return templates.TemplateResponse("admin.html", {"request": request, "base_href": base_href, "is_admin": is_admin})
 
 
+# =====================
+#  PAGE: View Search Page
+# =====================
+@app.get("/search")
+def home(
+        request: Request
+    ) -> _TemplateResponse:
 
+    log.info("'/search' called from: " + str(request.client))
+    token_validator(secret_key, request, log)
+
+    html = templates \
+        .TemplateResponse(
+            "search.html", {"request": request, "base_href": base_href}
+        )
+
+    return html
 # =====================
 #  PAGE: View Aid recipients
 # =====================
@@ -173,6 +198,24 @@ def home(
     html = templates \
         .TemplateResponse(
             "inventory.html", {"request": request, "base_href": base_href}
+        )
+
+    return html
+
+# =====================
+#  PAGE: View Aid donors
+# =====================
+@app.get("/aid_donor")
+def home(
+        request: Request
+    ) -> _TemplateResponse:
+
+    log.info("'/aid_donor' called from: " + str(request.client))
+    token_validator(secret_key, request, log)
+
+    html = templates \
+        .TemplateResponse(
+            "donors.html", {"request": request, "base_href": base_href}
         )
 
     return html
