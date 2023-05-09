@@ -140,7 +140,23 @@ def admin(
     return templates.TemplateResponse("admin.html", {"request": request, "base_href": base_href, "is_admin": is_admin})
 
 
+# =====================
+#  PAGE: View Search Page
+# =====================
+@app.get("/search")
+def home(
+        request: Request
+    ) -> _TemplateResponse:
 
+    log.info("'/search' called from: " + str(request.client))
+    token_validator(secret_key, request, log)
+
+    html = templates \
+        .TemplateResponse(
+            "search.html", {"request": request, "base_href": base_href}
+        )
+
+    return html
 # =====================
 #  PAGE: View Aid recipients
 # =====================
