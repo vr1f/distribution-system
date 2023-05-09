@@ -1,13 +1,13 @@
 # =========================================================================
-# 
+#
 # VR1FAMILY CHARITY DISTRIBUTION IT SYSTEM
-# 
+#
 # Database Builder, on SQLAlchemy (using postgres). Build and design the database in this file.
-# 
+#
 # =========================================================================
 
 
-from sqlalchemy import Column, String, Integer, Enum, ForeignKey, Date
+from sqlalchemy import Column, String, Integer, Enum, ForeignKey, Date, Float
 from sqlalchemy.orm import declarative_base, relationship
 import enum
 
@@ -42,6 +42,22 @@ class User(Base):
     username = Column(String, primary_key=True)
     password_hash = Column(String)
     access_level = Column(Enum(Privileges))
+
+# =======================
+# LOGIN_ATTEMPTS
+# Database table to store single item = log in attempts
+# =======================
+class Login_Attempts(Base):
+    __tablename__ = 'login_attempts'
+    value = Column(Integer, primary_key=True, default=3)
+
+# =======================
+# LOckOUT_PERIOD
+# Database table to store single item = lockout period
+# =======================
+class Lockout_Period(Base):
+    __tablename__ = 'lockout_period'
+    value = Column(Float, primary_key=True, default=24.0)
 
 # =======================
 # PERSON
@@ -82,7 +98,7 @@ class Categories(Base):
 
 # =======================
 # ITEM
-# Base class to represent items 
+# Base class to represent items
 # Each aid item has a name, quantity and category
 # =======================
 class Item(Base):
@@ -113,7 +129,7 @@ class Food_Item(Item):
 # PK is item_id from item table
 # =======================
 class Clothing_Item(Item):
-    __tablename__ = 'clothing_item'   
+    __tablename__ = 'clothing_item'
     item_id = Column(Integer, ForeignKey("item.item_id", ondelete="CASCADE", onupdate="CASCADE"), primary_key=True)
     size = Column(Enum(Size))
     brand = Column(String)

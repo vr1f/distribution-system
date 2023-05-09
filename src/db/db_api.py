@@ -8,8 +8,7 @@
 
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
-from db.db_builder import User, Privileges
-from db.db_builder import Aid_Recipient_DB, Person
+from db.db_builder import User, Privileges, Login_Attempts, Lockout_Period, Aid_Recipient_DB, Person
 from support.responses import DatabaseActionResponse
 from sqlalchemy import update
 
@@ -53,6 +52,84 @@ def add_default_user_admin(
         session.add(default_user)
         session.add(default_admin)
         session.commit()
+
+# =======================
+# ADD DEFAULT ADMIN SETTINGS
+# eg default log-in attempts, lock out time, if hasn't been set yet. Called on start-up
+# Checks if value already in DB. If not, adds default value.
+# =======================
+def add_default_admin_settings(
+        engine: Engine
+    ):
+
+    Session = sessionmaker(bind=engine)
+    with Session() as session:
+        if session.query(Login_Attempts).count() == 0:
+            session.add(Login_Attempts())
+            session.commit()
+        if session.query(Lockout_Period).count() == 0:
+            session.add(Lockout_Period())
+            session.commit()
+
+# =======================
+# UPDATE LOGIN ATTEMPTS
+# Used by admin to update the number of login attempts
+# Login attempts as Integer (number of attempts, default = 3)
+# =======================
+def update_login_attempts(
+        engine: Engine,
+        no_attempts: int
+    ):
+
+    Session = sessionmaker(bind=engine)
+    with Session() as session:
+        login_attempts = session.query(Login_Attempts).one()
+        login_attempts.value = no_attempts
+        session.commit()
+
+# =======================
+# GET LOGIN ATTEMPTS
+# Get current login attempts setting
+# Returns integer number of attempts before users are locked out
+# =======================
+def get_login_attempts(
+        engine: Engine
+    ):
+
+    Session = sessionmaker(bind=engine)
+    with Session() as session:
+        login_attempts = session.query(Login_Attempts).one()
+        return login_attempts.value
+
+# =======================
+# UPDATE LOCKOUT PERIOD
+# Used by admin to update the lockout period when have more than x failed login attempts
+# Lockout period in HOURS (as float, default 24)
+# =======================
+def update_lockout_period(
+        engine: Engine,
+        lockout_period: float
+    ):
+
+    Session = sessionmaker(bind=engine)
+    with Session() as session:
+        lockout_period = session.query(Lockout_Period).one()
+        lockout_period.value = lockout_period
+        session.commit()
+
+# =======================
+# GET LOCKOUT PERIOD
+# Get current lockout period, following which user will be barred from login
+# Returns float, being the number of hours locked out
+# =======================
+def get_lockout_period(
+        engine: Engine
+    ):
+
+    Session = sessionmaker(bind=engine)
+    with Session() as session:
+        lockout_period = session.query(Lockout_Period).one()
+        return lockout_period.value
 
 # =======================
 # CHECK USER CREDENTIALS
