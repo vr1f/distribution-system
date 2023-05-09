@@ -160,6 +160,24 @@ def home(
     return html
 
 # =====================
+#  PAGE: View Inventory
+# =====================
+@app.get("/inventory")
+def home(
+        request: Request
+    ) -> _TemplateResponse:
+
+    log.info("'/inventory' called from: " + str(request.client))
+    token_validator(secret_key, request, log)
+
+    html = templates \
+        .TemplateResponse(
+            "inventory.html", {"request": request, "base_href": base_href}
+        )
+
+    return html
+
+# =====================
 #  PAGE: View User Registration
 # =====================
 @app.get("/add_new_user")

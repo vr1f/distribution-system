@@ -1,0 +1,42 @@
+{%extends 'base.html' %}
+
+{%block content%}
+
+<div class="container">
+  <div class="row mb-5">
+    <h1>Inventory</h1>
+  </div>
+
+  <div class="row mb-3">
+    <div>
+      <button
+        class="btn btn-primary"
+        data-bs-toggle="modal"
+        data-bs-target="#modal"
+        app-action="inventory.add"
+      >Add Inventory</button>
+
+      <button id="testFactory" class="btn btn-primary">Test Render Table</button>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col" id="factoryTarget">
+
+      <h3>id:factoryTarget</h3>
+
+      <ul class="list-group">
+        <li class="list-group-item">An item</li>
+        <li class="list-group-item">A second item</li>
+        <li class="list-group-item">A third item</li>
+        <li class="list-group-item">A fourth item</li>
+        <li class="list-group-item">And a fifth one</li>
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+<script src="/js/inventory.js"></script>
+
+{%endblock content%}
