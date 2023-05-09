@@ -160,6 +160,24 @@ def home(
     return html
 
 # =====================
+#  PAGE: View Aid recipients
+# =====================
+@app.get("/aid_donor")
+def home(
+        request: Request
+    ) -> _TemplateResponse:
+
+    log.info("'/aid_donor' called from: " + str(request.client))
+    token_validator(secret_key, request, log)
+
+    html = templates \
+        .TemplateResponse(
+            "donors.html", {"request": request, "base_href": base_href}
+        )
+
+    return html
+
+# =====================
 #  PAGE: View User Registration
 # =====================
 @app.get("/add_new_user")
