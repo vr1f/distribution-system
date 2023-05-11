@@ -9,10 +9,10 @@
 from pydantic import BaseModel
 import enum
 
-class StatusEnum(enum.Enum):
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
+class StatusEnum(str, enum.Enum):
+    LOW = 'low'
+    MEDIUM = 'medium'
+    HIGH = 'high'
 
 class Item(BaseModel):
     """
@@ -32,8 +32,7 @@ class Category(BaseModel):
 
     Args:
 
-    
     """
-    category_id: int
+    category_id: int = None
     category_name: str
     status: StatusEnum
