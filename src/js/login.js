@@ -15,10 +15,13 @@
       })
       .then((response) => {
         if (response.status != 200) {
-          throw new Error ("Unauthorized Request");
+          return response.text().then(payload => {
+            detail = JSON.parse(payload)['detail']
+            throw new Error (detail)})
+        } else {
+          alert("Login Success!");
+          return response.json();
         }
-        alert("Login Success!");
-        return response.json();
       })
       .then((json) => {
         const token = json.token;
