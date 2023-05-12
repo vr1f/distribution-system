@@ -18,6 +18,7 @@ import uvicorn
 from sqlalchemy.exc import OperationalError, IntegrityError
 from support.recipients import PersonID, AidRecipient
 from support.items import Category
+from support.donor import AidDonor
 from support.responses import DatabaseActionResponse
 from support.security import token_validator, check_access, check_admin
 
@@ -412,7 +413,8 @@ async def delete_aid_recipient(
 
 # =====================
 # API ENDPOINT: Add aid category
-# 
+# Use Category data structure in support.items to get fields
+# Convert it to a database object and call the relevant method from db_api.py
 # =====================
 
 @app.post("/aid_category")
@@ -423,7 +425,7 @@ async def add_aid_category(
 
     from db.db_builder import Categories
     from db.db_api import add_aid_category as add_a_c
-    log.info("'/add_aid_category/' called from: " + str(request.client))
+    log.info("'/aid_category/' called from: " + str(request.client))
 
     add_category = Categories(
         category_name=category.category_name,
@@ -439,6 +441,45 @@ async def add_aid_category(
 
     return response
 
+# =====================
+# API ENDPOINT: Add aid donor
+# Receive an AidDonor data structure from input fields
+# Convert it to a DB object and add it to the database
+#
+# =====================
+
+@app.post("/aid_donor")
+async def add_aid_category(
+        request : Request,
+        donor : AidDonor,
+    ) -> dict:
+
+    print(donor)
+
+    from db.db_builder import Aid_Donor
+    from db.db_api import add_aid_donor as add_a_d
+    log.info("'/aid_donor/' called from: " + str(request.client))
+
+    add_donor = Aid_Donor(
+        first_name=donor.first_name,
+        last_name=donor.last_name,
+        age=donor.age,
+        mail_address=donor.mail_address,
+        phone_number=donor.phone_number,
+        email_address=donor.email_address,
+        preferred_comm=donor.preferred_comm
+    )
+
+    print(donor.preferred_comm)
+
+    response = add_a_d(engine, add_donor)
+
+    if response.error == None:
+        log.info("Aid donor added: " + str(response.id))
+    else:
+        log.info("Unable to add donor " + str(response.error))
+
+    return response
 
 # =====================
 #  Run server:
