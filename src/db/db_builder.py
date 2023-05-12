@@ -22,10 +22,9 @@ class Privileges(enum.Enum):
     ADMIN = 1
     USER = 2
 
-class Communication(enum.Enum):
+class Communication(str, enum.Enum):
     PHONE = 'phone'
     EMAIL = 'email'
-
 
 class Size(enum.Enum):
     SMALL = 'S'
@@ -88,7 +87,7 @@ class Aid_Recipient_DB(Person):
     common_law_partner = Column(String)
     dependents = Column(String)
     __mapper_args__ = {'inherit_condition': person_id == Person.person_id}
-    # person = relationship('Person', backref='aid_recipients', passive_deletes=True)
+
 
 # =======================
 # AID_DONOR
@@ -103,7 +102,7 @@ class Aid_Donor(Person):
     email_address = Column(String)
     preferred_comm = Column(Enum(Communication))
     __mapper_args__ = {'inherit_condition': donor_id == Person.person_id}
-    # person = relationship('Person', backref='aid_recipients', passive_deletes=True)
+
 
 
 # =======================

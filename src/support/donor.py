@@ -6,10 +6,14 @@
 #
 # =========================================================================
 from pydantic import BaseModel
+import enum
 
 NO_KNOWN_ADDRESS = "NO_KNOWN_ADDRESS"
 NO_LAST_NAME = "NO_LAST_NAME"
 
+class Communication(str, enum.Enum):
+    EMAIL = 'email'
+    PHONE = 'phone'
 
 class AidDonor(BaseModel):
 
@@ -25,13 +29,14 @@ class AidDonor(BaseModel):
         email_address (str): email address
         preferred_comm (str): select either email or phone as the preferred mode of communication
     """
-    donor_id: int
+    donor_id: int = None
     first_name: str
     last_name: str = NO_LAST_NAME
+    age: int = None
     mail_address: str = NO_KNOWN_ADDRESS
     phone_number: str
     email_address: str
-    preferred_comm: str
+    preferred_comm: Communication
 
 class DonorOrganisation(BaseModel):
     """
