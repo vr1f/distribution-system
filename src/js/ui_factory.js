@@ -104,6 +104,48 @@
   }
 
   /**
+    A factory that generates input elements for a form.
+    @param {Object} inputEl
+    @param {Array} inputEl.options - Options for the select element.
+    @param {Object} inputEl.options[] - Option for the select element.
+    @param {Object} inputEl.options[].name - Name of the option.
+    @param {Object} inputEl.options[].value - Value of the option.
+    @param {String} inputEl...attrs - Any other attributes to apply to input.
+   */
+  window.UiFactory.createSelectBox = (inputEl) => {
+    const{
+      options,
+      ...attrs
+    } = inputEl;
+
+    // Artefacts
+    const wrapper = document.createElement("div");
+    const select = document.createElement("select");
+    const option = document.createElement("option");
+
+    // Build the select element
+    select.classList.add("form-select", "mt-2", "mb-2");
+    Object.entries(attrs).map(([key, value]) => {
+      select.setAttribute(key, value)
+    });
+
+    // Build the option elements
+    options.map((optionParam) => {
+      const { name, value } = optionParam;
+      const optionEl = option.cloneNode();
+      optionEl.innerHTML = name;
+      optionEl.value = value;
+      select.appendChild(optionEl)
+    });
+
+    // Build the wrapper
+    wrapper.classList.add("form-group", "pb-3");
+    wrapper.appendChild(select);
+
+    return wrapper;
+  }
+
+  /**
     A factory that generates a form.
     @param {Array} formElements
     @param {Object} formElements[] - Objects that is consistent with parameters
@@ -114,7 +156,11 @@
     const wrapper = document.createElement("div");
     wrapper.setAttribute("id", "modalForm");
     formElements.map((inputEl) => {
-      wrapper.appendChild(window.UiFactory.createInputBox(inputEl))
+      if (inputEl.type && inputEl.type == "select") {
+        wrapper.appendChild(window.UiFactory.createSelectBox(inputEl))
+      } else {
+        wrapper.appendChild(window.UiFactory.createInputBox(inputEl))
+      }
     });
     return wrapper;
   }
