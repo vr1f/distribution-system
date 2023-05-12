@@ -312,7 +312,10 @@ async def add_aid_recipient(
             age=recipient.age,
             address=recipient.address,
             common_law_partner=recipient.common_law_partner,
-            dependents=recipient.dependents
+            dependents=recipient.dependents,
+            nationality=recipient.nationality,
+            id_no = recipient.id_no,
+            id_expiry = recipient.id_expiry
         )
 
     response = add_a_r(engine, new_recipient)
@@ -320,7 +323,7 @@ async def add_aid_recipient(
     if response.error == None:
         log.info("New recipient added " + str(recipient))
     else:
-        log.info("Unable to add recipeint: " + str(response.error))
+        log.info("Unable to add recipient: " + str(response.error))
     return response
 
 # =====================

@@ -88,6 +88,9 @@ class Person(Base):
     first_name = Column(String)
     last_name = Column(String)
     age = Column(Integer)
+    nationality = Column(String)
+    id_no = Column(String)
+    id_expiry = Column(Date)
     aid_recipient_db = relationship('Aid_Recipient_DB', backref='person', passive_deletes=True)
 
 # =======================
