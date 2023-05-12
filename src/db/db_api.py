@@ -109,13 +109,13 @@ def get_login_attempts(
 # =======================
 def update_lockout_period(
         engine: Engine,
-        lockout_period: float
+        new_lockout_period: float
     ):
 
     Session = sessionmaker(bind=engine)
     with Session() as session:
-        lockout_period = session.query(Lockout_Period).one()
-        lockout_period.value = lockout_period
+        lockout_period = session.query(Lockout_Period).first()
+        lockout_period.value = new_lockout_period
         session.commit()
 
 # =======================

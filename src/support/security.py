@@ -122,7 +122,7 @@ def token_validator(secret_key, request, log):
 
     access_granted = check_access(secret_key, request, log)
     if not access_granted:
-        log.info("User granted access.")
+        log.info("Token is valid.")
         raise HTTPException(
             status_code=307,
             detail="Token expired. Please log-in again.",
