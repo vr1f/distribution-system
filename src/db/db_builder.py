@@ -7,7 +7,7 @@
 # =========================================================================
 
 
-from sqlalchemy import Column, String, Integer, Enum, ForeignKey, Date, Float
+from sqlalchemy import Column, String, Integer, Enum, ForeignKey, Date, Float, DateTime
 from sqlalchemy.orm import declarative_base, relationship
 import enum
 
@@ -49,15 +49,34 @@ class User(Base):
 # =======================
 class Login_Attempts(Base):
     __tablename__ = 'login_attempts'
-    value = Column(Integer, primary_key=True, default=3)
+    value = Column(Integer, primary_key=True, default=5)
 
 # =======================
-# LOckOUT_PERIOD
+# LOCKOUT_PERIOD
 # Database table to store single item = lockout period
 # =======================
 class Lockout_Period(Base):
     __tablename__ = 'lockout_period'
     value = Column(Float, primary_key=True, default=24.0)
+
+# =======================
+# LOCKOUT_LIST
+# Database table to store list of usernames which are locked out
+# =======================
+class Lockout_List(Base):
+    __tablename__ = 'lockout_list'
+    username = Column(String, primary_key=True)
+    lockout_expiry = Column(DateTime)
+
+# =======================
+# FAILED_LOGIN
+# Database table to store all failed log-in attempts
+# =======================
+class Failed_Login(Base):
+    __tablename__ = 'failed_login'
+    login_attempt_id = Column(Integer, primary_key=True, autoincrement=True)
+    username = Column(String)
+    when = Column(DateTime)
 
 # =======================
 # PERSON

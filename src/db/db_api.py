@@ -8,9 +8,10 @@
 
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
-from db.db_builder import User, Privileges, Login_Attempts, Lockout_Period, Aid_Recipient_DB, Person, Categories
+from db.db_builder import User, Privileges, Login_Attempts, Lockout_Period, Aid_Recipient_DB, Person, Categories, Lockout_List, Failed_Login
 from support.responses import DatabaseActionResponse
 from sqlalchemy import update
+from datetime import datetime, timedelta
 
 # =======================
 # ADD NEW USER
@@ -108,13 +109,13 @@ def get_login_attempts(
 # =======================
 def update_lockout_period(
         engine: Engine,
-        lockout_period: float
+        new_lockout_period: float
     ):
 
     Session = sessionmaker(bind=engine)
     with Session() as session:
-        lockout_period = session.query(Lockout_Period).one()
-        lockout_period.value = lockout_period
+        lockout_period = session.query(Lockout_Period).first()
+        lockout_period.value = new_lockout_period
         session.commit()
 
 # =======================
@@ -130,6 +131,103 @@ def get_lockout_period(
     with Session() as session:
         lockout_period = session.query(Lockout_Period).one()
         return lockout_period.value
+
+# =======================
+# GET LOCKOUT EXPIRY
+# Check lockout_list for user and, if present and not expired, returns expiry time
+# =======================
+def get_user_lockout_expiry(
+        engine: Engine,
+        username: str
+    ):
+
+    Session = sessionmaker(bind=engine)
+    with Session() as session:
+        query = session.query(Lockout_List)
+        user = query.filter(Lockout_List.username == username).first()
+        if user is not None and user.lockout_expiry > datetime.now():
+            return user.lockout_expiry
+        else:
+            return None
+
+# =======================
+# ADD / UPDATE LOCKOUT EXPIRY
+# Check lockout_list for user and, if present and not expired, returns expiry time
+# =======================
+def update_or_add_user_lockout_expiry(
+        engine: Engine,
+        username: str,
+        lockout_expiry: datetime
+    ):
+
+    Session = sessionmaker(bind=engine)
+    with Session() as session:
+        query = session.query(Lockout_List)
+        user = query.filter(Lockout_List.username == username).first()
+        if user is not None:
+            user.lockout_expiry = lockout_expiry
+        else:
+            new_user_to_lockout = Lockout_List(username=username, lockout_expiry=lockout_expiry)
+            session.add(new_user_to_lockout)
+        session.commit()
+
+# =======================
+# ADD FAILED LOGIN
+# Add the user-time of a failed login attempt
+# =======================
+def add_failed_login(
+        engine: Engine,
+        username: str
+    ):
+
+    Session = sessionmaker(bind=engine)
+    with Session() as session:
+        failed_login = Failed_Login(username=username, when=datetime.now())
+        session.add(failed_login)
+        session.commit()
+
+# =======================
+# GET REMAINING LOGINS
+# Get the number of remaining logins
+# =======================
+def get_remaining_logins(
+        engine: Engine,
+        username: str,
+        login_attempts_allowed: int
+    ):
+
+    thirty_minutes_ago = datetime.now() - timedelta(minutes=30)
+
+    Session = sessionmaker(bind=engine)
+    with Session() as session:
+        query = session.query(Failed_Login)
+        count = query.filter(
+            Failed_Login.username == username,
+            Failed_Login.when >= thirty_minutes_ago
+        ).count()
+
+    if login_attempts_allowed - count <= 0:
+        return 0
+    else:
+        return login_attempts_allowed - count
+
+# =======================
+# ADD USER TO LOCKOUT LIST
+# Add user to lockout list (called when remaining logins = 0)
+# =======================
+def add_user_to_lockout_list(
+        engine: Engine,
+        username: str,
+        lockout_period: float
+    ):
+
+    Session = sessionmaker(bind=engine)
+    with Session() as session:
+        expiry = datetime.now() + timedelta(hours=lockout_period)
+        lockout_list = Lockout_List(username=username, lockout_expiry=expiry)
+        session.add(lockout_list)
+        session.commit()
+
 
 # =======================
 # CHECK USER CREDENTIALS
