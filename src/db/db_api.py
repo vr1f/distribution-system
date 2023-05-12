@@ -8,7 +8,7 @@
 
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
-from db.db_builder import User, Privileges, Login_Attempts, Lockout_Period, Aid_Recipient_DB, Person
+from db.db_builder import User, Privileges, Login_Attempts, Lockout_Period, Aid_Recipient_DB, Person, Categories
 from support.responses import DatabaseActionResponse
 from sqlalchemy import update
 
@@ -248,3 +248,25 @@ def delete_aid_recipient(
         response.error = e
 
     return response
+
+# =======================
+# ADD AID CATEGORY
+# Adds an aid category to the database
+# =======================
+def add_aid_category(
+        engine: Engine,
+        category: Categories
+    ):
+    response = DatabaseActionResponse(id=category.category_id)
+
+    try:
+        Session = sessionmaker(bind=engine)
+        with Session() as session:
+            session.add(category)
+            session.commit()
+            response.id = category.category_id
+    except Exception as e:
+        response.error = e
+
+    return response
+

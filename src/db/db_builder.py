@@ -28,10 +28,10 @@ class Size(enum.Enum):
     LARGE = 'L'
     XLarge = 'XL'
 
-class Status(enum.Enum):
-    LOW = "Low"
-    MEDIUM = 'Medium'
-    HIGH = "High"
+class Status(str, enum.Enum):
+    LOW = 'low'
+    MEDIUM = 'medium'
+    HIGH = 'high'
 
 # =======================
 # USERS
