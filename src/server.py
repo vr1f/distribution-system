@@ -17,6 +17,7 @@ from starlette.templating import _TemplateResponse
 import uvicorn
 from sqlalchemy.exc import OperationalError, IntegrityError
 from support.recipients import PersonID, AidRecipient
+from support.items import Category
 from support.responses import DatabaseActionResponse
 from support.security import token_validator, check_access, check_admin
 
@@ -409,6 +410,35 @@ async def delete_aid_recipient(
         log.info("Recipient deleted: " + str(recipient))
     else:
         log.info("Unable to delete recipeint: " + str(response.error))
+
+    return response
+
+# =====================
+# API ENDPOINT: Add aid category
+# 
+# =====================
+
+@app.post("/aid_category")
+async def add_aid_category(
+        request : Request,
+        category : Category,
+    ) -> dict:
+
+    from db.db_builder import Categories
+    from db.db_api import add_aid_category as add_a_c
+    log.info("'/add_aid_category/' called from: " + str(request.client))
+
+    add_category = Categories(
+        category_name=category.category_name,
+        status=category.status
+    )
+
+    response = add_a_c(engine, add_category)
+
+    if response.error == None:
+        log.info("Category added: " + str(response.id))
+    else:
+        log.info("Unable to add category " + str(response.error))
 
     return response
 
