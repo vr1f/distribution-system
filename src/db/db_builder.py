@@ -22,6 +22,11 @@ class Privileges(enum.Enum):
     ADMIN = 1
     USER = 2
 
+class Communication(enum.Enum):
+    PHONE = 'phone'
+    EMAIL = 'email'
+
+
 class Size(enum.Enum):
     SMALL = 'S'
     MEDIUM = 'M'
@@ -84,6 +89,22 @@ class Aid_Recipient_DB(Person):
     dependents = Column(String)
     __mapper_args__ = {'inherit_condition': person_id == Person.person_id}
     # person = relationship('Person', backref='aid_recipients', passive_deletes=True)
+
+# =======================
+# AID_DONOR
+# Inherits person and collects additional details of aid donors
+# PK is a person_id from the Person table
+# =======================
+class Aid_Donor(Person):
+    __tablename__ = 'aid_donors'
+    donor_id = Column(Integer, ForeignKey("person.person_id", ondelete="CASCADE", onupdate="CASCADE"), primary_key=True)
+    mail_address = Column(String)
+    phone_number = Column(String)
+    email_address = Column(String)
+    preferred_comm = Column(Enum(Communication))
+    __mapper_args__ = {'inherit_condition': donor_id == Person.person_id}
+    # person = relationship('Person', backref='aid_recipients', passive_deletes=True)
+
 
 # =======================
 # CATEGORIES
