@@ -283,57 +283,8 @@ async def login_for_access_token(
     ) -> dict:
 
     log.info("'/check_login' called from: " + str(request.client))
-    from support.security import get_token, log_failed_login_attempt, get_remaining_login_attempts, get_locked_out_until
-
-    # Check if user on the lock-out list. And get access token.
-    token = False
-    locked_out_until = None
-    try:
-        locked_out_until = get_locked_out_until(details['username'], log)
-        token = get_token(engine, secret_key, access_token_expire_minutes, details['username'], details['password'])
-    except:
-        log.error("Unable to check token or locked out status.")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Unable to verify details",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    # If user is locked out, raise error with lock out expiry time
-    if locked_out_until != None:
-        user_msg = "User has exceeded log-in attempts and is locked out until " + locked_out_until
-        log.info(user_msg)
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=user_msg,
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    # If user password / username is incorrect, log the failed attempt and raise exception
-    if not token:
-        try:
-            log_failed_login_attempt(details['username'], log)
-            remaining_attempts = get_remaining_login_attempts(details['username'], log)
-        except:
-            log.error("Unable to log failed attempts.")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Failed login attempt.",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        if remaining_attempts <= 0:
-            locked_out_until = get_locked_out_until(details['username'], log)
-            user_msg = "Incorrect username or password. User has exceeded log-in attempts and is locked out until " + locked_out_until
-        else:
-            user_msg = "Incorrect username or password. You have " + remaining_attempts + " log-in attempts remaining."
-        log.info("Unauthorised access request from " + str(request.client))
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=user_msg,
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    # If all details correct, return valid token
+    from support.security import get_token
+    token = get_token(engine, secret_key, access_token_expire_minutes, details['username'], details['password'], log)
     log.info("Successful log in from " + str(request.client))
     return {"token": token}
 
@@ -443,7 +394,7 @@ async def delete_aid_recipient(
 
 # =====================
 # API ENDPOINT: Add aid category
-# 
+#
 # =====================
 
 @app.post("/aid_category")
