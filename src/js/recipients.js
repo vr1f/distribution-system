@@ -36,6 +36,18 @@
     {
       label: "Dependents", placeholder: "Enter dependents details (optional)",
       name: "partner"
+    }, 
+    {
+      label: "Nationality", placeholder: "Enter nationality",
+      name: "nationality" 
+    },
+    {
+      label: "ID No.", placeholder: "Enter ID no.",
+      name: "id_no" 
+    },
+    {
+      label: "ID Expiry", placeholder: "Enter ID expiry date",
+      name: "id_expiry", type: "date"
     }
   ];
 
@@ -48,12 +60,18 @@
         id = undefined,
         first_name,
         last_name = "NO_LAST_NAME",
-        age
+        age,
+        nationality = undefined,
+        id_no = undefined,
+        id_expiry = undefined
       } = params
       this.id = id;
       this.first_name = first_name;
       this.last_name = last_name;
       this.age = age;
+      this.nationality = nationality;
+      this.id_no = id_no;
+      this.id_expiry = id_expiry;
     }
   }
 
@@ -66,7 +84,7 @@
       const {
         address = undefined, //"NO_KNOWN_ADDRESS",
         common_law_partner = undefined,
-        dependents = undefined
+        dependents = undefined,
       } = params
       this.address = address;
       this.common_law_partner = common_law_partner;
@@ -221,7 +239,6 @@
       }
       return inputVals;
     }, {})
-
     // Generate a request to the API
     fetch("/aid_recipient", {
         method: "POST",
@@ -269,12 +286,12 @@
     /**
       @debug Dummy state
      */
-    state.aidRecipient.addRecipient(
-      new AidRecipient({
-        first_name: "foo", last_name: "bar", age: 25, address: "101 Rescue Lane",
-        common_law_partner: "rick", dependents: "morty"
-      })
-    )
+    // state.aidRecipient.addRecipient(
+    //   new AidRecipient({
+    //     first_name: "foo", last_name: "bar", age: 25, address: "101 Rescue Lane",
+    //     common_law_partner: "rick", dependents: "morty"
+    //   })
+    // )
 
     console.log(state)
   })
