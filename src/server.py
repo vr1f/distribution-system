@@ -454,9 +454,7 @@ async def get_admin_settings(
             headers={"WWW-Authenticate": "Bearer"},
         )
     log.info("Successfully obtained admin settings.")
-    return {"lockout_period": lockout_period, "login_attempts":login_attempts}
-
-
+    return templates.TemplateResponse("security.html", {"request": request, "base_href": base_href, "lockout_period": lockout_period, "login_attempts":login_attempts})
 # =====================
 # API ENDPOINT: UPDATE CURRENT ADMIN SETTINGS
 # Update configurable admin settings (to display on admin dashboard)
