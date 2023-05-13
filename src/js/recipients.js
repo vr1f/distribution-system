@@ -48,7 +48,12 @@
     {
       label: "ID Expiry", placeholder: "Enter ID expiry date",
       name: "id_expiry", type: "date"
+    },
+    {
+      label: "Upload Documents", id: "file",
+      name: "file", type: "file", multiple:"multiple"
     }
+    
   ];
 
   /**
@@ -210,6 +215,68 @@
     return isValid;
   }
 
+  // Sends aid recipient form data to API endpoint
+  const fetchForm = async (formData) => {
+     await fetch("/aid_recipient", {
+      method: "POST",
+      headers: new Headers({
+        "content-type": "application/json"
+      }),
+      body: JSON.stringify(formData)
+    })
+    .then((response) => {
+      if (response.status == 401) { throw new Error("Invalid credentials"); }
+      if (response.status != 200) { throw new Error("Bad Server Response"); }
+      return response.json();
+    })
+    .then((json) => {
+      if (("error" in json) && json.error != undefined) {
+        throw new Error(json.error);
+      }
+
+      // TODO
+      // Additional behaviour after success
+      //console.log(json)
+      alert("Success!")
+      console.log(json);
+      return json;
+    })
+    .catch((error) => {
+      alert(error);
+      return [];
+    })
+    .finally((json) => {
+      // TODO
+      // Additional behaviour if required
+      return json
+    })
+  }
+
+
+  // Uploads file to API endpoint and adds the file ID (returned from API) to the form data
+  // TO DO: Test again after backend completed
+  const fetchFile = async (files, formData) => {
+    await fetch("/aid_recipient", {
+      method: "POST",
+      body: files
+    })
+    .then((response) => {
+      // TO DO: Change status no. accordingly when backend is completed
+      if (response.status != 201) {
+        throw new Error("Unable to upload file!");
+      }
+      return response.json();
+    })
+    .then((json) => {
+      // gets the file ID from API and adds to form data
+      formData["file_id"] =  json.file_id;
+      return json;
+    })
+    .catch((error) => {
+      alert(error.message);
+    })
+  }
+
   /**
    Submits data to the API endpoint to create an aid recipient
   */
@@ -228,7 +295,7 @@
     }
 
     // Get data from form fields
-    const formData = formElements.reduce((inputVals, inputEl) => {
+    var formData = formElements.reduce((inputVals, inputEl) => {
       const field = inputEl.getAttribute("name");
       let value = inputEl.value;
       if (value != undefined) {
@@ -239,41 +306,18 @@
       }
       return inputVals;
     }, {})
-    // Generate a request to the API
-    fetch("/aid_recipient", {
-        method: "POST",
-        headers: new Headers({
-          "content-type": "application/json"
-        }),
-        body: JSON.stringify(formData)
-      }
-    )
-    .then((response) => {
-      if (response.status == 401) { throw new Error("Invalid credentials"); }
-      if (response.status != 200) { throw new Error("Bad Server Response"); }
-      return response.json();
-    })
-    .then((json) => {
-      if (("error" in json) && json.error != undefined) {
-        throw new Error(json.error);
-      }
 
-      // TODO
-      // Additional behaviour after success
-      console.log(json)
-      alert("Success!")
-
-      return json;
-    })
-    .catch((error) => {
-      alert(error);
-      return [];
-    })
-    .finally((json) => {
-      // TODO
-      // Additional behaviour if required
-      return json
-    });
+    // Check if user uploaded any files
+    if (document.getElementById("file").value != "") {
+      // If files present
+      var files = new FormData();
+      for (const file of document.getElementById("file").files) {
+        files.append("file", file);
+      }
+      // Upload file to DB and add linking file ID key to recipient form
+      fetchFile(files, formData);
+    }
+    fetchForm(formData);
   }
 
   /**
