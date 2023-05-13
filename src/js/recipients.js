@@ -255,6 +255,7 @@
 
   // Uploads file to API endpoint and adds the file ID (returned from API) to the form data
   // TO DO: Test again after backend completed
+  // TO DO: Add file_id field to Person
   const fetchFile = async (files, formData) => {
     await fetch("/aid_recipient", {
       method: "POST",
