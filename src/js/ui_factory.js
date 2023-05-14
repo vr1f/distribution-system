@@ -25,6 +25,7 @@
     // Create the table element
     const table = document.createElement("table");
     table.classList.add("table");
+    table.setAttribute("id", "table");
 
     // Create table artefacts
     const tr = document.createElement("tr");
