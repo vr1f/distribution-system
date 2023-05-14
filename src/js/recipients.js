@@ -159,8 +159,9 @@
       .addEventListener("click", () => {
         const testData = {
           headers: ["First Name", "Last Name", "Age"], data: [
-            {a: 1, b:2, c:3},
-            {a: 1, b:2, c:3},
+            {a: "Paul", b:"Z", c:24},
+            {a: "Tom", b:"C", c:31},
+            {a: "Paul", b:"T", c:19},
           ]
         }
         const tableNode = UiFactory && UiFactory.createTable(testData)
