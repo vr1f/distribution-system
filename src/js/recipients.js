@@ -36,14 +36,14 @@
     {
       label: "Dependents", placeholder: "Enter dependents details (optional)",
       name: "partner"
-    }, 
+    },
     {
       label: "Nationality", placeholder: "Enter nationality",
-      name: "nationality" 
+      name: "nationality"
     },
     {
       label: "ID No.", placeholder: "Enter ID no.",
-      name: "id_no" 
+      name: "id_no"
     },
     {
       label: "ID Expiry", placeholder: "Enter ID expiry date",
@@ -53,7 +53,7 @@
       label: "Upload Documents", id: "file",
       name: "file", type: "file", multiple:"multiple"
     }
-    
+
   ];
 
   /**
@@ -62,7 +62,7 @@
   class Person {
     constructor(params) {
       const {
-        id = undefined,
+        // id = undefined,
         first_name,
         last_name = "NO_LAST_NAME",
         age,
@@ -70,7 +70,7 @@
         id_no = undefined,
         id_expiry = undefined
       } = params
-      this.id = id;
+      // this.id = id;
       this.first_name = first_name;
       this.last_name = last_name;
       this.age = age;
@@ -111,6 +111,7 @@
 
     addRecipient(aidRecipient) {
       this.aidRecipients.push(aidRecipient);
+      this.renderStateTable();
     }
 
     updateRecipient(id, aidRecipient) {
@@ -144,33 +145,29 @@
       modalAction.addEventListener("click", onCreateRecipient)
 
     }
+
+    /**
+      Renders the state into the page
+     */
+    renderStateTable = () => {
+      const tableData = {
+        headers: [
+          // "ID",
+          "First Name", "Last Name", "Age",
+          "Nationality", "ID Number", "ID Expiry",
+          "Address", "Partner", "Dependents"
+        ],
+        data: state.aidRecipient.aidRecipients
+      }
+      const tableNode = UiFactory && UiFactory.createTable(tableData)
+      const el = document.getElementById("dataTarget")
+      el.innerHTML = ""
+      el.appendChild(tableNode)
+    }
   }
 
   /** State of aidRecipients in the system */
   state.aidRecipient = new AidRecipientsState()
-
-  /**
-    Adds event listeners to various DOM elements
-   */
-  const addEventListeners = () => {
-    /** @debug */
-    document
-      .getElementById("testFactory")
-      .addEventListener("click", () => {
-        const testData = {
-          headers: ["First Name", "Last Name", "Age"], data: [
-            {a: "Paul", b:"Z", c:24},
-            {a: "Tom", b:"C", c:31},
-            {a: "Paul", b:"T", c:19},
-          ]
-        }
-        const tableNode = UiFactory && UiFactory.createTable(testData)
-        const el = document.getElementById("factoryTarget")
-        el.innerHTML = ""
-        el.appendChild(tableNode)
-      })
-    ;
-  }
 
   /**
     Retrieves all child `input` elements of a given element by its `id`
@@ -309,6 +306,15 @@
       return inputVals;
     }, {})
 
+    const newRecipient = new AidRecipient(formData)
+    state.aidRecipient.addRecipient(newRecipient)
+
+    // Close the modal
+    document.getElementById("modalDismiss").click()
+
+    // Directly render to table while backend is being completed.
+    return;
+
     // Check if user uploaded any files
     if (document.getElementById("file").value != "") {
       // If files present
@@ -327,17 +333,28 @@
    */
   window.addEventListener("load", () => {
     console.log("recipients.js")
-    addEventListeners();
 
     /**
       @debug Dummy state
      */
-    // state.aidRecipient.addRecipient(
-    //   new AidRecipient({
-    //     first_name: "foo", last_name: "bar", age: 25, address: "101 Rescue Lane",
-    //     common_law_partner: "rick", dependents: "morty"
-    //   })
-    // )
+    state.aidRecipient.addRecipient(
+      new AidRecipient({
+        // id: 1,
+        first_name: "Jim", last_name: "Raynor", age: 32,
+        address: "101 Raiders Way", common_law_partner: "Kerrigan",
+        dependents: "Zergling",
+        nationality: "Terran", id_no: "102432", id_expiry: "31/12/2023"
+      })
+    )
+    state.aidRecipient.addRecipient(
+      new AidRecipient({
+        // id: 1,
+        first_name: "Rick", last_name: "Sanchez", age: 70,
+        address: "Smith residence", common_law_partner: "",
+        dependents: "Morty Smith",
+        nationality: "Earth", id_no: "C-137", id_expiry: "31/12/2023"
+      })
+    )
 
     console.log(state)
   })
