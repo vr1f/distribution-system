@@ -2,7 +2,7 @@
   Methods relating to user login
  */
 (() => {
-  // Resets form 
+  // Resets form
   const clearForm = () => {
     document.getElementById("username").value = "";
     document.getElementById("password").value = "";
@@ -27,7 +27,8 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           username: username,
-          password: password
+          password: password,
+          privilege: privilege,
         }),
       })
       .then((response) => {

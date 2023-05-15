@@ -4,7 +4,7 @@
 
 <div class="container">
   <div class="row mb-5">
-    <h1>Aid recipients</h1>
+    <h1>Aid donors</h1>
   </div>
 
   <div class="row mb-3">
@@ -13,15 +13,13 @@
         class="btn btn-primary"
         data-bs-toggle="modal"
         data-bs-target="#modal"
-        app-action="recipient.add"
-      >Add Recipient</button>
+        app-action="donor.add"
+      >Add Donor</button>
 
       <button id="testFactory" class="btn btn-primary">Test Render Table</button>
     </div>
   </div>
-  <div>
-    <input id="search" type="text" class="form-control" placeholder="Search">
-</div>
+
   <div class="row">
     <div class="col" id="factoryTarget">
 
@@ -39,8 +37,6 @@
   </div>
 </div>
 
-
-<script src="/js/recipients.js"></script>
-<script src="/js/search.js"></script>
+<script src="/js/donors.js"></script>
 
 {%endblock content%}

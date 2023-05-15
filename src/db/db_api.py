@@ -8,10 +8,10 @@
 
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
-from db.db_builder import User
-from db.db_builder import Aid_Recipient_DB, Person
+from db.db_builder import User, Privileges, Login_Attempts, Lockout_Period, Aid_Recipient_DB, Person, Categories, Lockout_List, Failed_Login, Aid_Donor
 from support.responses import DatabaseActionResponse
 from sqlalchemy import update
+from datetime import datetime, timedelta
 
 # =======================
 # ADD NEW USER
@@ -25,6 +25,209 @@ def add_new_user(
     with Session() as session:
         session.add(user)
         session.commit()
+
+# =======================
+# ADD DEFAULT USER & ADMIN
+# For dev purposes - called on start-up
+# =======================
+def add_default_user_admin(
+        engine: Engine
+    ):
+
+    from support.security import hash_password
+
+    default_user = User(
+        username= "user",
+        password_hash = hash_password("password"),
+        access_level = "USER"
+    )
+
+    default_admin = User(
+        username= "admin",
+        password_hash = hash_password("password"),
+        access_level = "ADMIN"
+    )
+
+    Session = sessionmaker(bind=engine)
+    with Session() as session:
+        session.add(default_user)
+        session.add(default_admin)
+        session.commit()
+
+# =======================
+# ADD DEFAULT ADMIN SETTINGS
+# eg default log-in attempts, lock out time, if hasn't been set yet. Called on start-up
+# Checks if value already in DB. If not, adds default value.
+# =======================
+def add_default_admin_settings(
+        engine: Engine
+    ):
+
+    Session = sessionmaker(bind=engine)
+    with Session() as session:
+        if session.query(Login_Attempts).count() == 0:
+            session.add(Login_Attempts())
+            session.commit()
+        if session.query(Lockout_Period).count() == 0:
+            session.add(Lockout_Period())
+            session.commit()
+
+# =======================
+# UPDATE LOGIN ATTEMPTS
+# Used by admin to update the number of login attempts
+# Login attempts as Integer (number of attempts, default = 3)
+# =======================
+def update_login_attempts(
+        engine: Engine,
+        no_attempts: int
+    ):
+
+    Session = sessionmaker(bind=engine)
+    with Session() as session:
+        login_attempts = session.query(Login_Attempts).one()
+        login_attempts.value = no_attempts
+        session.commit()
+
+# =======================
+# GET LOGIN ATTEMPTS
+# Get current login attempts setting
+# Returns integer number of attempts before users are locked out
+# =======================
+def get_login_attempts(
+        engine: Engine
+    ):
+
+    Session = sessionmaker(bind=engine)
+    with Session() as session:
+        login_attempts = session.query(Login_Attempts).one()
+        return login_attempts.value
+
+# =======================
+# UPDATE LOCKOUT PERIOD
+# Used by admin to update the lockout period when have more than x failed login attempts
+# Lockout period in HOURS (as float, default 24)
+# =======================
+def update_lockout_period(
+        engine: Engine,
+        new_lockout_period: float
+    ):
+
+    Session = sessionmaker(bind=engine)
+    with Session() as session:
+        lockout_period = session.query(Lockout_Period).first()
+        lockout_period.value = new_lockout_period
+        session.commit()
+
+# =======================
+# GET LOCKOUT PERIOD
+# Get current lockout period, following which user will be barred from login
+# Returns float, being the number of hours locked out
+# =======================
+def get_lockout_period(
+        engine: Engine
+    ):
+
+    Session = sessionmaker(bind=engine)
+    with Session() as session:
+        lockout_period = session.query(Lockout_Period).one()
+        return lockout_period.value
+
+# =======================
+# GET LOCKOUT EXPIRY
+# Check lockout_list for user and, if present and not expired, returns expiry time
+# =======================
+def get_user_lockout_expiry(
+        engine: Engine,
+        username: str
+    ):
+
+    Session = sessionmaker(bind=engine)
+    with Session() as session:
+        query = session.query(Lockout_List)
+        user = query.filter(Lockout_List.username == username).first()
+        if user is not None and user.lockout_expiry > datetime.now():
+            return user.lockout_expiry
+        else:
+            return None
+
+# =======================
+# ADD / UPDATE LOCKOUT EXPIRY
+# Check lockout_list for user and, if present and not expired, returns expiry time
+# =======================
+def update_or_add_user_lockout_expiry(
+        engine: Engine,
+        username: str,
+        lockout_expiry: datetime
+    ):
+
+    Session = sessionmaker(bind=engine)
+    with Session() as session:
+        query = session.query(Lockout_List)
+        user = query.filter(Lockout_List.username == username).first()
+        if user is not None:
+            user.lockout_expiry = lockout_expiry
+        else:
+            new_user_to_lockout = Lockout_List(username=username, lockout_expiry=lockout_expiry)
+            session.add(new_user_to_lockout)
+        session.commit()
+
+# =======================
+# ADD FAILED LOGIN
+# Add the user-time of a failed login attempt
+# =======================
+def add_failed_login(
+        engine: Engine,
+        username: str
+    ):
+
+    Session = sessionmaker(bind=engine)
+    with Session() as session:
+        failed_login = Failed_Login(username=username, when=datetime.now())
+        session.add(failed_login)
+        session.commit()
+
+# =======================
+# GET REMAINING LOGINS
+# Get the number of remaining logins
+# =======================
+def get_remaining_logins(
+        engine: Engine,
+        username: str,
+        login_attempts_allowed: int
+    ):
+
+    thirty_minutes_ago = datetime.now() - timedelta(minutes=30)
+
+    Session = sessionmaker(bind=engine)
+    with Session() as session:
+        query = session.query(Failed_Login)
+        count = query.filter(
+            Failed_Login.username == username,
+            Failed_Login.when >= thirty_minutes_ago
+        ).count()
+
+    if login_attempts_allowed - count <= 0:
+        return 0
+    else:
+        return login_attempts_allowed - count
+
+# =======================
+# ADD USER TO LOCKOUT LIST
+# Add user to lockout list (called when remaining logins = 0)
+# =======================
+def add_user_to_lockout_list(
+        engine: Engine,
+        username: str,
+        lockout_period: float
+    ):
+
+    Session = sessionmaker(bind=engine)
+    with Session() as session:
+        expiry = datetime.now() + timedelta(hours=lockout_period)
+        lockout_list = Lockout_List(username=username, lockout_expiry=expiry)
+        session.add(lockout_list)
+        session.commit()
+
 
 # =======================
 # CHECK USER CREDENTIALS
@@ -45,6 +248,24 @@ def check_user_credentials(
         query = session.query(User)
         user = query.filter(User.username == username).first()
         if user is not None and user.password_hash == pwd_hash:
+            return True
+        else:
+            return False
+
+# =======================
+# CHECK USER IS ADMIN
+# =======================
+def check_user_is_admin(
+        engine,
+        username
+    ) -> bool:
+
+    from db.db_builder import User
+    Session = sessionmaker(bind=engine)
+    with Session() as session:
+        query = session.query(User)
+        user = query.filter(User.username == username).first()
+        if user.access_level == Privileges.ADMIN:
             return True
         else:
             return False
@@ -123,5 +344,47 @@ def delete_aid_recipient(
             session.commit()
     except Exception as e:
         response.error = e
-    
+
+    return response
+
+# =======================
+# ADD AID CATEGORY
+# Adds an aid category to the database
+# =======================
+def add_aid_category(
+        engine: Engine,
+        category: Categories
+    ):
+    response = DatabaseActionResponse()
+
+    try:
+        Session = sessionmaker(bind=engine)
+        with Session() as session:
+            session.add(category)
+            session.commit()
+            response.id = category.category_id
+    except Exception as e:
+        response.error = e
+
+    return response
+
+# =======================
+# ADD AID DONOR
+# Adds an aid donor to the database
+# =======================
+def add_aid_donor(
+        engine: Engine,
+        donor: Aid_Donor
+    ):
+    response = DatabaseActionResponse()
+
+    try:
+        Session = sessionmaker(bind=engine)
+        with Session() as session:
+            session.add(donor)
+            session.commit()
+            response.id = donor.donor_id
+    except Exception as e:
+        response.error = e
+
     return response
