@@ -70,8 +70,6 @@ from db.db_api import add_default_user_admin, add_default_admin_settings
 try:
     add_default_user_admin(engine)
     log.info("Added default user and admin profiles to db.")
-    add_default_admin_settings(engine)
-    log.info("Checked default admin settings.")
 except IntegrityError:
     log.info("Default admin and user profiles already exist.")
 
@@ -287,23 +285,7 @@ async def login_for_access_token(
 
     log.info("'/check_login' called from: " + str(request.client))
     from support.security import get_token
-    token = False
-    try:
-        token = get_token(engine, secret_key, access_token_expire_minutes, details['username'], details['password'])
-    except:
-        log.error("Unable to check token")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Unable to verify details",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    if not token:
-        log.info("Unauthorised access request from " + str(request.client))
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    token = get_token(engine, secret_key, access_token_expire_minutes, details['username'], details['password'], log)
     log.info("Successful log in from " + str(request.client))
     return {"token": token}
 
@@ -331,7 +313,10 @@ async def add_aid_recipient(
             age=recipient.age,
             address=recipient.address,
             common_law_partner=recipient.common_law_partner,
-            dependents=recipient.dependents
+            dependents=recipient.dependents,
+            nationality=recipient.nationality,
+            id_no = recipient.id_no,
+            id_expiry = recipient.id_expiry
         )
 
     response = add_a_r(engine, new_recipient)
@@ -339,7 +324,7 @@ async def add_aid_recipient(
     if response.error == None:
         log.info("New recipient added " + str(recipient))
     else:
-        log.info("Unable to add recipeint: " + str(response.error))
+        log.info("Unable to add recipient: " + str(response.error))
     return response
 
 # =====================
@@ -445,7 +430,6 @@ async def add_aid_category(
 # API ENDPOINT: Add aid donor
 # Receive an AidDonor data structure from input fields
 # Convert it to a DB object and add it to the database
-#
 # =====================
 
 @app.post("/aid_donor")
@@ -480,6 +464,70 @@ async def add_aid_category(
         log.info("Unable to add donor " + str(response.error))
 
     return response
+
+# =====================
+# API ENDPOINT: GET CURRENT ADMIN SETTINGS
+# Get configurable admin settings (to display on admin dashboard)
+# Returns dictionary
+# =====================
+@app.get("/get_admin_settings", status_code=200)
+async def get_admin_settings(
+        request: Request
+    ) -> dict:
+
+    log.info("'/get_admin_settings' called from: " + str(request.client))
+    token_validator(secret_key, request, log)
+    if not check_admin(secret_key, request, log):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Unauthorised access.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    from db.db_api import get_lockout_period, get_login_attempts
+    try:
+        lockout_period = get_lockout_period(engine)
+        login_attempts = get_login_attempts(engine)
+    except:
+        log.error("Unable to get admin settings.")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Unable to get admin settings.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    log.info("Successfully obtained admin settings.")
+    return templates.TemplateResponse("security.html", {"request": request, "base_href": base_href, "lockout_period": lockout_period, "login_attempts":login_attempts})
+
+# =====================
+# API ENDPOINT: UPDATE CURRENT ADMIN SETTINGS
+# Update configurable admin settings (to display on admin dashboard)
+# =====================
+@app.post("/update_admin_settings")
+async def get_admin_settings(
+        request: Request,
+        details: dict # dictionary containing fields: {'lockout_period': (as a float, in hours)..., 'login_attempts':...}
+    ) -> dict:
+
+    log.info("'/update_admin_settings' called from: " + str(request.client))
+    token_validator(secret_key, request, log)
+    if not check_admin(secret_key, request, log):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Unauthorised access.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    from db.db_api import update_lockout_period, update_login_attempts
+    try:
+        update_lockout_period(engine, float(details['lockout_period']))
+        update_login_attempts(engine, int(details['login_attempts']))
+    except:
+        log.error("Unable to update admin settings.")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Unable to update admin settings.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    log.info("Successfully updated admin settings.")
+    return {"message":"successfully updated."}
 
 # =====================
 #  Run server:

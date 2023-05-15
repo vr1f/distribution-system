@@ -33,6 +33,9 @@ class Person(PersonID):
     first_name: str
     last_name: str = NO_LAST_NAME
     age: int
+    nationality: str = None
+    id_no: str = None
+    id_expiry: str = None
 
 
 class AidRecipient(Person):
