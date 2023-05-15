@@ -48,7 +48,7 @@
   class AidDonor {
     constructor(params) {
       const {
-        id = undefined,
+        // id = undefined,
         first_name,
         last_name = "NO_LAST_NAME",
         address = "NO_KNOWN_ADDRESS",
@@ -56,7 +56,7 @@
         email,
         communication_mode
       } = params
-      this.id = id;
+      // this.id = id;
       this.first_name = first_name;
       this.last_name = last_name;
       this.address = address;
@@ -80,6 +80,7 @@
 
     addDonor(aidDonor) {
       this.aidDonors.push(aidDonor);
+      this.renderStateTable();
     }
 
     updateDonor(id, aidRecipient) {
@@ -113,6 +114,24 @@
       modalAction.addEventListener("click", onCreateDonor)
 
     }
+
+    /**
+      Renders the state into the page
+     */
+    renderStateTable = () => {
+      const tableData = {
+        headers: [
+          // "ID",
+          "First Name", "Last Name", "Address", "Phone", "Email",
+          "Mode of Communication"
+        ],
+        data: this.aidDonors
+      }
+      const tableNode = UiFactory && UiFactory.createTable(tableData)
+      const el = document.getElementById("dataTarget")
+      el.innerHTML = ""
+      el.appendChild(tableNode)
+    }
   }
 
   /** State of aidRecipients in the system */
@@ -121,24 +140,24 @@
   /**
     Adds event listeners to various DOM elements
    */
-  const addEventListeners = () => {
-    /** @debug */
-    document
-      .getElementById("testFactory")
-      .addEventListener("click", () => {
-        const testData = {
-          headers: [
-              "ID", "First Name", "Last Name", "Address", "Phone", "Email",
-              "Mode of Communication"
-            ], data: state.aidDonor.aidDonors
-        }
-        const tableNode = UiFactory && UiFactory.createTable(testData)
-        const el = document.getElementById("factoryTarget")
-        el.innerHTML = ""
-        el.appendChild(tableNode)
-      })
-    ;
-  }
+  // const addEventListeners = () => {
+  //   /** @debug */
+  //   document
+  //     .getElementById("testFactory")
+  //     .addEventListener("click", () => {
+  //       const testData = {
+  //         headers: [
+  //             "ID", "First Name", "Last Name", "Address", "Phone", "Email",
+  //             "Mode of Communication"
+  //           ], data: state.aidDonor.aidDonors
+  //       }
+  //       const tableNode = UiFactory && UiFactory.createTable(testData)
+  //       const el = document.getElementById("factoryTarget")
+  //       el.innerHTML = ""
+  //       el.appendChild(tableNode)
+  //     })
+  //   ;
+  // }
 
   /**
     Retrieves all child `input` elements of a given element by its `id`
@@ -214,6 +233,15 @@
       return inputVals;
     }, {})
 
+    const newDonor = new AidDonor(formData)
+    state.aidDonor.addDonor(newDonor)
+
+    // Close the modal
+    document.getElementById("modalDismiss").click()
+
+    // Directly render to table while backend is being completed.
+    return;
+
     // Generate a request to the API
     fetch("/aid_donor", {
         method: "POST",
@@ -256,21 +284,21 @@
    */
   window.addEventListener("load", () => {
 
-    addEventListeners();
+    // addEventListeners();
 
     /**
       @debug Dummy state
      */
     state.aidDonor.addDonor(
       new AidDonor({
-        first_name: "foo", last_name: "bar", address: "101 Rescue Lane",
-        phone: "+61 3 9035 5511", email: "hello@world.com", communication_mode: "email"
+        first_name: "Tony", last_name: "Stark", address: "Stark Tower, NY",
+        phone: "1300 888 666", email: "ironman@avengers.com", communication_mode: "email"
       })
     )
     state.aidDonor.addDonor(
       new AidDonor({
-        first_name: "John", last_name: "Doe", address: "102 Rescue Lane",
-        phone: "+61 3 9035 5511", communication_mode: "phone"
+        first_name: "Bruce", last_name: "Wayne", address: "Wayne Manor, GC",
+        phone: "", email: "signal@thebat.com", communication_mode: "email"
       })
     )
 
