@@ -30,7 +30,7 @@
       name: "address"
     },
     {
-      label: "Famly Size", placeholder: "Number in family (optional)",
+      label: "Family Size", placeholder: "Number in family (optional)",
       name: "n_family"
     },
     {
