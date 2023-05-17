@@ -30,23 +30,27 @@
       name: "address"
     },
     {
+      label: "Famly Size", placeholder: "Number in family (optional)",
+      name: "n_family"
+    },
+    {
       label: "Partner", placeholder: "Enter partner details (optional)",
-      name: "partner"
+      name: "common_law_partner"
     },
     {
       label: "Dependents", placeholder: "Enter dependents details (optional)",
-      name: "partner"
+      name: "dependents"
     },
     {
-      label: "Nationality", placeholder: "Enter nationality",
+      label: "Nationality", placeholder: "Enter nationality (optional)",
       name: "nationality"
     },
     {
-      label: "ID No.", placeholder: "Enter ID no.",
+      label: "ID No.", placeholder: "Enter ID no. (optional)",
       name: "id_no"
     },
     {
-      label: "ID Expiry", placeholder: "Enter ID expiry date",
+      label: "ID Expiry", placeholder: "Enter ID expiry date (optional)",
       name: "id_expiry", type: "date"
     },
     {
@@ -66,9 +70,9 @@
         first_name,
         last_name = "NO_LAST_NAME",
         age,
-        nationality = undefined,
-        id_no = undefined,
-        id_expiry = undefined
+        nationality = "",
+        id_no = "",
+        id_expiry = ""
       } = params
       // this.id = id;
       this.first_name = first_name;
@@ -87,11 +91,13 @@
     constructor(params) {
       super(params)
       const {
-        address = undefined, //"NO_KNOWN_ADDRESS",
-        common_law_partner = undefined,
-        dependents = undefined,
+        address = "NO_KNOWN_ADDRESS",
+        n_family = 1,
+        common_law_partner = "",
+        dependents = "",
       } = params
       this.address = address;
+      this.n_family = n_family;
       this.common_law_partner = common_law_partner;
       this.dependents = dependents;
     }
@@ -155,7 +161,7 @@
           // "ID",
           "First Name", "Last Name", "Age",
           "Nationality", "ID Number", "ID Expiry",
-          "Address", "Partner", "Dependents"
+          "Address", "Family Size", "Partner", "Dependents"
         ],
         data: state.aidRecipient.aidRecipients
       }
@@ -340,19 +346,21 @@
     state.aidRecipient.addRecipient(
       new AidRecipient({
         // id: 1,
-        first_name: "Jim", last_name: "Raynor", age: 32,
-        address: "101 Raiders Way", common_law_partner: "Kerrigan",
-        dependents: "Zergling",
-        nationality: "Terran", id_no: "102432", id_expiry: "31/12/2023"
+        first_name: "Jim", last_name: "Raynor", age: 32, n_family: 2,
+        address: "101 Raiders Way, Sunshine, VIC, 3020",
+        common_law_partner: "Kerrigan (Age 28)",
+        dependents: "",
+        nationality: "Australian", id_no: "102432", id_expiry: "31/12/2023"
       })
     )
     state.aidRecipient.addRecipient(
       new AidRecipient({
         // id: 1,
-        first_name: "Rick", last_name: "Sanchez", age: 70,
-        address: "Smith residence", common_law_partner: "",
-        dependents: "Morty Smith",
-        nationality: "Earth", id_no: "C-137", id_expiry: "31/12/2023"
+        first_name: "Rick", last_name: "Sanchez", age: 70, n_family: 2,
+        address: "56 Sunset Blvd, Brighton, VIC, 3186",
+        common_law_partner: "",
+        dependents: "Morty Smith (Age 14)",
+        nationality: "Australian", id_no: "124352", id_expiry: "31/12/2023"
       })
     )
 
