@@ -31,7 +31,7 @@
     },
     {
       label: "Family Size", placeholder: "Number in family (optional)",
-      name: "n_family"
+      name: "n_family", type: "number"
     },
     {
       label: "Partner", placeholder: "Enter partner details (optional)",
@@ -53,10 +53,10 @@
       label: "ID Expiry", placeholder: "Enter ID expiry date (optional)",
       name: "id_expiry", type: "date"
     },
-    {
-      label: "Upload Documents", id: "file",
-      name: "file", type: "file", multiple:"multiple"
-    }
+    // {
+    //   label: "Upload Documents", id: "file",
+    //   name: "file", type: "file", multiple:"multiple"
+    // }
 
   ];
 
@@ -66,15 +66,15 @@
   class Person {
     constructor(params) {
       const {
-        // id = undefined,
+        person_id = undefined,
         first_name,
         last_name = "NO_LAST_NAME",
         age,
-        nationality = "",
-        id_no = "",
-        id_expiry = ""
+        nationality = undefined,
+        id_no = undefined,
+        id_expiry = undefined
       } = params
-      // this.id = id;
+      this.person_id = person_id;
       this.first_name = first_name;
       this.last_name = last_name;
       this.age = age;
@@ -113,11 +113,12 @@
           callback: this.showRecipientModal.bind(this)
         }
       }));
+
+      this.refreshRecords()
     }
 
     addRecipient(aidRecipient) {
       this.aidRecipients.push(aidRecipient);
-      this.renderStateTable();
     }
 
     updateRecipient(id, aidRecipient) {
@@ -158,7 +159,7 @@
     renderStateTable = () => {
       const tableData = {
         headers: [
-          // "ID",
+          "ID",
           "First Name", "Last Name", "Age",
           "Nationality", "ID Number", "ID Expiry",
           "Address", "Family Size", "Partner", "Dependents"
@@ -169,6 +170,42 @@
       const el = document.getElementById("dataTarget")
       el.innerHTML = ""
       el.appendChild(tableNode)
+    }
+
+    /**
+      Refreshes records from the server database
+     */
+    refreshRecords = async () => {
+      await fetch ("/search", {
+        method: "POST",
+        headers: new Headers({
+          "content-type": "application/json"
+        }),
+        body: JSON.stringify({context: "aid_recipients"})
+      })
+      .then((response) => {
+        if (response.status == 401) { throw new Error("Invalid credentials"); }
+        if (response.status != 200) { throw new Error("Bad Server Response"); }
+        return response.json();
+      })
+      .then((json) => {
+        if (("error" in json) && json.error != undefined) {
+          throw new Error(json.error);
+        }
+        // Clear state
+        this.aidRecipients = [];
+
+        // Add
+        json.map((row) => {
+          this.addRecipient(new AidRecipient(row));
+        });
+
+        // Render the table
+        this.renderStateTable();
+      })
+      .catch((error) => {
+        alert(error);
+      })
     }
   }
 
@@ -241,8 +278,15 @@
       // TODO
       // Additional behaviour after success
       //console.log(json)
-      alert("Success!")
-      console.log(json);
+      // alert("Success!")
+      // console.log(json);
+
+      // Refresh the displayed table
+      state.aidRecipient.refreshRecords();
+
+      // Close the modal
+      document.getElementById("modalDismiss").click();
+
       return json;
     })
     .catch((error) => {
@@ -311,27 +355,20 @@
       }
       return inputVals;
     }, {})
-
-    const newRecipient = new AidRecipient(formData)
-    state.aidRecipient.addRecipient(newRecipient)
-
-    // Close the modal
-    document.getElementById("modalDismiss").click()
-
-    // Directly render to table while backend is being completed.
-    return;
-
     // Check if user uploaded any files
-    if (document.getElementById("file").value != "") {
-      // If files present
-      var files = new FormData();
-      for (const file of document.getElementById("file").files) {
-        files.append("file", file);
-      }
-      // Upload file to DB and add linking file ID key to recipient form
-      fetchFile(files, formData);
-    }
+    // if (document.getElementById("file").value != "") {
+    //   // If files present
+    //   var files = new FormData();
+    //   for (const file of document.getElementById("file").files) {
+    //     files.append("file", file);
+    //   }
+    //   // Upload file to DB and add linking file ID key to recipient form
+    //   fetchFile(files, formData);
+    // }
+
+    // Add data to server database
     fetchForm(formData);
+
   }
 
   /**
@@ -339,31 +376,5 @@
    */
   window.addEventListener("load", () => {
     console.log("recipients.js")
-
-    /**
-      @debug Dummy state
-     */
-    state.aidRecipient.addRecipient(
-      new AidRecipient({
-        // id: 1,
-        first_name: "Jim", last_name: "Raynor", age: 32, n_family: 2,
-        address: "101 Raiders Way, Sunshine, VIC, 3020",
-        common_law_partner: "Kerrigan (Age 28)",
-        dependents: "",
-        nationality: "Australian", id_no: "102432", id_expiry: "31/12/2023"
-      })
-    )
-    state.aidRecipient.addRecipient(
-      new AidRecipient({
-        // id: 1,
-        first_name: "Rick", last_name: "Sanchez", age: 70, n_family: 2,
-        address: "56 Sunset Blvd, Brighton, VIC, 3186",
-        common_law_partner: "",
-        dependents: "Morty Smith (Age 14)",
-        nationality: "Australian", id_no: "124352", id_expiry: "31/12/2023"
-      })
-    )
-
-    console.log(state)
   })
 })()

@@ -109,6 +109,7 @@ class Aid_Recipient_DB(Person):
     __tablename__ = 'aid_recipients'
     person_id = Column(Integer, ForeignKey("person.person_id", ondelete="CASCADE", onupdate="CASCADE"), primary_key=True)
     address = Column(String)
+    n_family = Column(Integer)
     common_law_partner = Column(String)
     dependents = Column(String)
     __mapper_args__ = {'inherit_condition': person_id == Person.person_id}
