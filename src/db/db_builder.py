@@ -96,6 +96,9 @@ class Person(Base):
     id_no = Column(String)
     id_expiry = Column(String)
     aid_recipient_db = relationship('Aid_Recipient_DB', backref='person', passive_deletes=True)
+    #TODO document_id_1 FK BINARY
+    #TODO document_id_2 FK BINARY
+    #TODO document_id_3 FK BINARY
 
 # =======================
 # AID_RECIPIENT_DB

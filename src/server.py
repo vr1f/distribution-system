@@ -166,6 +166,28 @@ def home(
         )
 
     return html
+
+# =====================
+#  ENDPOINT: Returns
+# =====================
+@app.post("/search")
+def home(
+        request: Request,
+        searchParams: dict
+    ) -> _TemplateResponse:
+
+    log.info("'/search' called from: " + str(request.client))
+    token_validator(secret_key, request, log)
+
+    # TODO: look up the relevant table based on "option" key
+    searchParams = {
+        "context": "" # recipient|donor|category|inventory
+    }
+
+    #TODO: return the contents of the relevant table.
+
+    return {}
+
 # =====================
 #  PAGE: View Aid recipients
 # =====================

@@ -36,7 +36,9 @@ class Person(PersonID):
     nationality: str = None
     id_no: str = None
     id_expiry: str = None
-
+    document_id_1: str = None #TODO: FOREIGN KEY TO BINARY TABLE
+    document_id_2: str = None #TODO: FOREIGN KEY TO BINARY TABLE
+    document_id_3: str = None #TODO: FOREIGN KEY TO BINARY TABLE
 
 class AidRecipient(Person):
     """

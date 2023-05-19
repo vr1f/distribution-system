@@ -6,6 +6,7 @@
 #
 # =========================================================================
 from pydantic import BaseModel
+from support.recipients import Person
 import enum
 
 NO_KNOWN_ADDRESS = "NO_KNOWN_ADDRESS"
@@ -15,24 +16,19 @@ class Communication(str, enum.Enum):
     EMAIL = 'email'
     PHONE = 'phone'
 
-class AidDonor(BaseModel):
+class AidDonor(Person):
 
     """
     A data item representing an aid donor
 
     Args:
         donor_id (int): id for the database
-        first_name (str): first name of the donor
-        last_name (str): last name of the donor. Optional field
         mail_address (str): physical mailing address
         phone_number (str): mobile or landline
         email_address (str): email address
         preferred_comm (str): select either email or phone as the preferred mode of communication
     """
     donor_id: int = None
-    first_name: str
-    last_name: str = NO_LAST_NAME
-    age: int = None
     mail_address: str = NO_KNOWN_ADDRESS
     phone_number: str
     email_address: str
@@ -51,7 +47,7 @@ class DonorOrganisation(BaseModel):
 
     """
     donor_org_id: int
-    org_name: str 
+    org_name: str
     contact_person: str
     contact_email: str
     address: str = None
