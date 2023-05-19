@@ -52,5 +52,6 @@ class AidRecipient(Person):
         dependents (List of Person): Recipient's dependents (eg. kids).
     """
     address: str = NO_KNOWN_ADDRESS
-    common_law_partner: Person = None
-    dependents: List[Person] = None
+    n_family: int = None
+    common_law_partner: str = None
+    dependents: str = None

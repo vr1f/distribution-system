@@ -343,6 +343,7 @@ async def add_aid_recipient(
             last_name=recipient.last_name,
             age=recipient.age,
             address=recipient.address,
+            n_family=recipient.n_family,
             common_law_partner=recipient.common_law_partner,
             dependents=recipient.dependents,
             nationality=recipient.nationality,
