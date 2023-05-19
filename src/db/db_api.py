@@ -271,6 +271,23 @@ def check_user_is_admin(
             return False
 
 # =======================
+# RETRIEVES ALL DATA WITHIN A TABLE
+# Returns all data rows within the target table
+# =======================
+def get_table_rows(
+        engine: Engine,
+        table: str = ""
+    ):
+    Session = sessionmaker(bind=engine)
+
+    if table == "aid_recipients":
+        with Session() as session:
+            rows = session.query(Aid_Recipient_DB).all()
+            return rows
+
+    return []
+
+# =======================
 # ADD AID RECIPIENT
 # Creates new aid recipient in the database
 # =======================
