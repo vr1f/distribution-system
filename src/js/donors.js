@@ -15,56 +15,63 @@
   state.template.addRecipientFormElements = [
     {
       label: "First name", placeholder: "Enter first name", required: true,
-      name:"first_name"
+      name: "first_name"
     },
     {
       label: "Last name", placeholder: "Enter last name (optional)",
       name: "last_name"
     },
     {
+      label: "Enter age", placeholder: "Enter age", required: true,
+      name: "age", type: "number"
+    },
+    {
       label: "Mailing Address", placeholder: "Enter address (optional)",
-      name: "address"
+      name: "mail_address"
     },
     {
       label: "Phone number", placeholder: "",
-      name: "phone", type: "tel"
+      name: "phone_number", type: "tel"
     },
     {
       label: "Email", placeholder: "Enter email address", required: true,
-      name: "email"
+      name: "email_address"
     },
     {
       label: "Preferred mode of communication",
       placeholder: "Enter either email or phone",
-      name: "communication_mode",
+      name: "preferred_comm",
       required: true
     }
   ];
 
   /**
-    Representing info for a person, this should match `donors.py`
-    @todo Match this with donors.py once it is complete
-   */
+  Representing info for a person, this should match `donors.py`
+  @todo Match this with donors.py once it is complete
+ */
   class AidDonor {
     constructor(params) {
       const {
-        // id = undefined,
+        donor_id = undefined,
         first_name,
         last_name = "NO_LAST_NAME",
-        address = "NO_KNOWN_ADDRESS",
-        phone = "",
-        email,
-        communication_mode
+        age,
+        mail_address = "NO_KNOWN_ADDRESS",
+        phone_number = "",
+        email_address,
+        preferred_comm
       } = params
-      // this.id = id;
+      this.donor_id = donor_id;
       this.first_name = first_name;
       this.last_name = last_name;
-      this.address = address;
-      this.phone = phone;
-      this.email = email;
-      this.communication_mode = communication_mode;
+      this.age = age;
+      this.mail_address = mail_address;
+      this.phone_number = phone_number;
+      this.email_address = email_address;
+      this.preferred_comm = preferred_comm;
     }
   }
+
 
   class AidDonorsState {
     constructor() {
@@ -76,11 +83,12 @@
           callback: this.showDonorModal.bind(this)
         }
       }));
+
+      this.refreshRecords();
     }
 
     addDonor(aidDonor) {
       this.aidDonors.push(aidDonor);
-      this.renderStateTable();
     }
 
     updateDonor(id, aidRecipient) {
@@ -121,43 +129,55 @@
     renderStateTable = () => {
       const tableData = {
         headers: [
-          // "ID",
-          "First Name", "Last Name", "Address", "Phone", "Email",
+          "ID",
+          "First Name", "Last Name", "Age", "Address", "Phone", "Email",
           "Mode of Communication"
         ],
-        data: this.aidDonors
+        data: state.aidDonor.aidDonors
       }
       const tableNode = UiFactory && UiFactory.createTable(tableData)
       const el = document.getElementById("dataTarget")
       el.innerHTML = ""
       el.appendChild(tableNode)
     }
+
+    refreshRecords = async () => {
+      await fetch("/search", {
+        method: "POST",
+        headers: new Headers({
+          "content-type": "application/json"
+        }),
+        body: JSON.stringify({ context: "aid_donors" })
+      })
+        .then((response) => {
+          if (response.status == 401) { throw new Error("Invalid credentials"); }
+          if (response.status != 200) { throw new Error("Bad Server Response"); }
+          return response.json();
+        })
+        .then((json) => {
+          if (("error" in json) && json.error != undefined) {
+            throw new Error(json.error);
+          }
+          // Clear state
+          this.aidDonors = [];
+
+          // Add
+          json.map((row) => {
+            this.addDonor(new AidDonor(row));
+          });
+
+          // Render the table
+          this.renderStateTable();
+        })
+        .catch((error) => {
+          alert(error);
+        })
+    }
   }
+
 
   /** State of aidRecipients in the system */
   state.aidDonor = new AidDonorsState()
-
-  /**
-    Adds event listeners to various DOM elements
-   */
-  // const addEventListeners = () => {
-  //   /** @debug */
-  //   document
-  //     .getElementById("testFactory")
-  //     .addEventListener("click", () => {
-  //       const testData = {
-  //         headers: [
-  //             "ID", "First Name", "Last Name", "Address", "Phone", "Email",
-  //             "Mode of Communication"
-  //           ], data: state.aidDonor.aidDonors
-  //       }
-  //       const tableNode = UiFactory && UiFactory.createTable(testData)
-  //       const el = document.getElementById("factoryTarget")
-  //       el.innerHTML = ""
-  //       el.appendChild(tableNode)
-  //     })
-  //   ;
-  // }
 
   /**
     Retrieves all child `input` elements of a given element by its `id`
@@ -166,9 +186,9 @@
    */
   const getFormInputsById = (id) => {
     const formElements = [
-        ...document
-          .getElementById(id)
-          .getElementsByTagName("input")
+      ...document
+        .getElementById(id)
+        .getElementsByTagName("input")
     ];
     return formElements;
   }
@@ -176,7 +196,7 @@
   /**
    Validates a form of given `id` by checking all required elements have
   values.
-
+ 
   @param {String} id - ID of the target element.
   @return {Boolean} `true` if valid.
   */
@@ -233,75 +253,47 @@
       return inputVals;
     }, {})
 
-    const newDonor = new AidDonor(formData)
-    state.aidDonor.addDonor(newDonor)
-
-    // Close the modal
-    document.getElementById("modalDismiss").click()
-
-    // Directly render to table while backend is being completed.
-    return;
-
     // Generate a request to the API
     fetch("/aid_donor", {
-        method: "POST",
-        headers: new Headers({
-          "content-type": "application/json"
-        }),
-        body: JSON.stringify(formData)
-      }
+      method: "POST",
+      headers: new Headers({
+        "content-type": "application/json"
+      }),
+      body: JSON.stringify(formData)
+    }
     )
-    .then((response) => {
-      if (response.status == 401) { throw new Error("Invalid credentials"); }
-      if (response.status != 200) { throw new Error("Bad Server Response"); }
-      return response.json();
-    })
-    .then((json) => {
-      if (("error" in json) && json.error != undefined) {
-        throw new Error(json.error);
-      }
+      .then((response) => {
+        if (response.status == 401) { throw new Error("Invalid credentials"); }
+        if (response.status != 200) { throw new Error("Bad Server Response"); }
+        return response.json();
+      })
+      .then((json) => {
+        if (("error" in json) && json.error != undefined) {
+          throw new Error(json.error);
+        }
 
-      // TODO
-      // Additional behaviour after success
-      console.log(json)
-      alert("Success!")
+        // Refresh the displayed table
+        state.aidDonor.refreshRecords();
 
-      return json;
-    })
-    .catch((error) => {
-      alert(error);
-      return [];
-    })
-    .finally((json) => {
-      // TODO
-      // Additional behaviour if required
-      return json
-    });
+        // Close the modal
+        document.getElementById("modalDismiss").click();
+
+        return json;
+      })
+      .catch((error) => {
+        alert(error);
+        return [];
+      })
+      .finally((json) => {
+        // TODO
+        // Additional behaviour if required
+        return json
+      });
   }
 
-  /**
-    Run on load
-   */
-  window.addEventListener("load", () => {
-
-    // addEventListeners();
-
-    /**
-      @debug Dummy state
-     */
-    state.aidDonor.addDonor(
-      new AidDonor({
-        first_name: "Tony", last_name: "Stark", address: "Stark Tower, NY",
-        phone: "1300 888 666", email: "ironman@avengers.com", communication_mode: "email"
-      })
-    )
-    state.aidDonor.addDonor(
-      new AidDonor({
-        first_name: "Bruce", last_name: "Wayne", address: "Wayne Manor, GC",
-        phone: "", email: "signal@thebat.com", communication_mode: "email"
-      })
-    )
-
-    console.log(state)
-  })
+  // /**
+  //   Run on load
+  //  */
+  // window.addEventListener("load", () => {
+  // })
 })()

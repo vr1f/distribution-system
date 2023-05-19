@@ -285,6 +285,10 @@ def get_table_rows(
             rows = session.query(Aid_Recipient_DB).all()
             return rows
 
+    if table == "aid_donors":
+        with Session() as session:
+            rows = session.query(Aid_Donor).all()
+            return rows
     return []
 
 # =======================
