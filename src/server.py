@@ -168,7 +168,7 @@ def home(
     return html
 
 # =====================
-#  ENDPOINT: Returns
+#  ENDPOINT: Returns DB Table
 # =====================
 @app.post("/search")
 def home(
@@ -195,6 +195,10 @@ def home(
         rows = get_table_rows(engine=engine, table=context)
         return rows
 
+    if context == "aid_donors":
+        rows = get_table_rows(engine=engine, table=context)
+        return rows
+    
     return {}
 
 # =====================
@@ -479,7 +483,7 @@ async def add_aid_category(
     add_donor = Aid_Donor(
         first_name=donor.first_name,
         last_name=donor.last_name,
-        age=donor.age,
+        age = donor.age,
         mail_address=donor.mail_address,
         phone_number=donor.phone_number,
         email_address=donor.email_address,
@@ -491,7 +495,7 @@ async def add_aid_category(
     response = add_a_d(engine, add_donor)
 
     if response.error == None:
-        log.info("Aid donor added: " + str(response.id))
+        log.info("Aid donor added: " + str(donor))
     else:
         log.info("Unable to add donor " + str(response.error))
 
