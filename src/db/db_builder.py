@@ -99,6 +99,7 @@ class Person(Base):
     document_id = Column(Integer, ForeignKey("sensitive_img.document_id", ondelete="CASCADE", onupdate="CASCADE"))
     
 
+
 # =======================
 # AID_RECIPIENT_DB
 # Inherits person and collects additional details
@@ -139,6 +140,7 @@ class Sensitive_Img(Base):
     img_1 = Column(LargeBinary, default=None)
     img_2 = Column(LargeBinary, default=None)
     img_3 = Column(LargeBinary, default=None)
+
 
 # =======================
 # CATEGORIES
