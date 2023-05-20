@@ -96,7 +96,7 @@ class Person(Base):
     id_no = Column(String)
     id_expiry = Column(String)
     aid_recipient_db = relationship('Aid_Recipient_DB', backref='person', passive_deletes=True)
-    sensitive_img_id = Column(Integer, ForeignKey("sensitive_img.sensitive_img_id", ondelete="CASCADE", onupdate="CASCADE"))
+    document_id = Column(Integer, ForeignKey("sensitive_img.document_id", ondelete="CASCADE", onupdate="CASCADE"))
     
 
 # =======================
@@ -135,10 +135,10 @@ class Aid_Donor(Person):
 # =======================
 class Sensitive_Img(Base):
     __tablename__ = 'sensitive_img'
-    sensitive_img_id = Column(Integer, primary_key=True)
-    img_1 = Column(LargeBinary)
-    img_2 = Column(LargeBinary)
-    img_3 = Column(LargeBinary)
+    document_id = Column(Integer, primary_key=True)
+    img_1 = Column(LargeBinary, default=None)
+    img_2 = Column(LargeBinary, default=None)
+    img_3 = Column(LargeBinary, default=None)
 
 # =======================
 # CATEGORIES
