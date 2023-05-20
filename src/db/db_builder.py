@@ -7,7 +7,7 @@
 # =========================================================================
 
 
-from sqlalchemy import Column, String, Integer, Enum, ForeignKey, Date, Float, DateTime
+from sqlalchemy import Column, String, Integer, Enum, ForeignKey, Date, Float, DateTime, LargeBinary
 from sqlalchemy.orm import declarative_base, relationship
 import enum
 
@@ -96,10 +96,9 @@ class Person(Base):
     id_no = Column(String)
     id_expiry = Column(String)
     aid_recipient_db = relationship('Aid_Recipient_DB', backref='person', passive_deletes=True)
-    sensitive_img_id = Column(Integer, ForeignKey("person.person_id", ondelete="CASCADE", onupdate="CASCADE"), primary_key=True)
-    #TODO document_id_1 FK BINARY
-    #TODO document_id_2 FK BINARY
-    #TODO document_id_3 FK BINARY
+    document_id = Column(Integer, ForeignKey("sensitive_img.document_id", ondelete="CASCADE", onupdate="CASCADE"))
+    
+
 
 # =======================
 # AID_RECIPIENT_DB
@@ -137,12 +136,11 @@ class Aid_Donor(Person):
 # =======================
 class Sensitive_Img(Base):
     __tablename__ = 'sensitive_img'
-    sensitive_img_id = Column(Integer, primary_key=True)
-    mail_address = Column(String)
-    phone_number = Column(String)
-    email_address = Column(String)
-    preferred_comm = Column(Enum(Communication))
-    __mapper_args__ = {'inherit_condition': donor_id == Person.person_id}
+    document_id = Column(Integer, primary_key=True)
+    img_1 = Column(LargeBinary, default=None)
+    img_2 = Column(LargeBinary, default=None)
+    img_3 = Column(LargeBinary, default=None)
+
 
 # =======================
 # CATEGORIES

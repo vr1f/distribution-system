@@ -29,6 +29,10 @@ class Person(PersonID):
         first_name (str): Person's first name.
         last_name (str): Person's last name. Defaults to "NO_LAST_NAME"
         age (float): Age in years.
+        nationality: Person's nationality
+        id_no: Personal ID
+        id_expiry: Expiry date of personal ID
+        document_id: FK link to sensitive_img table which stores up to three img files
     """
     first_name: str
     last_name: str = NO_LAST_NAME
@@ -36,9 +40,7 @@ class Person(PersonID):
     nationality: str = None
     id_no: str = None
     id_expiry: str = None
-    document_id_1: str = None #TODO: FOREIGN KEY TO BINARY TABLE
-    document_id_2: str = None #TODO: FOREIGN KEY TO BINARY TABLE
-    document_id_3: str = None #TODO: FOREIGN KEY TO BINARY TABLE
+    document_id: str = None # Can FK be None?
 
 class AidRecipient(Person):
     """
