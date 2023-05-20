@@ -96,6 +96,7 @@ class Person(Base):
     id_no = Column(String)
     id_expiry = Column(String)
     aid_recipient_db = relationship('Aid_Recipient_DB', backref='person', passive_deletes=True)
+    sensitive_img_id = Column(Integer, ForeignKey("person.person_id", ondelete="CASCADE", onupdate="CASCADE"), primary_key=True)
     #TODO document_id_1 FK BINARY
     #TODO document_id_2 FK BINARY
     #TODO document_id_3 FK BINARY
@@ -129,7 +130,19 @@ class Aid_Donor(Person):
     preferred_comm = Column(Enum(Communication))
     __mapper_args__ = {'inherit_condition': donor_id == Person.person_id}
 
-
+# =======================
+# Sensitive image table
+# Store sensitive img files for both aid donor and aid recipient
+# PK is a person_id from the Person table
+# =======================
+class Sensitive_Img(Base):
+    __tablename__ = 'sensitive_img'
+    sensitive_img_id = Column(Integer, primary_key=True)
+    mail_address = Column(String)
+    phone_number = Column(String)
+    email_address = Column(String)
+    preferred_comm = Column(Enum(Communication))
+    __mapper_args__ = {'inherit_condition': donor_id == Person.person_id}
 
 # =======================
 # CATEGORIES
