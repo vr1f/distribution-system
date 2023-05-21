@@ -199,6 +199,10 @@ def home(
         rows = get_table_rows(engine=engine, table=context)
         return rows
     
+    if context == "item":
+        rows = get_table_rows(engine=engine, table=context)
+        return rows
+    
     return {}
 
 # =====================
