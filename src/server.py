@@ -17,7 +17,7 @@ from starlette.templating import _TemplateResponse
 import uvicorn
 from sqlalchemy.exc import OperationalError, IntegrityError
 from support.recipients import PersonID, AidRecipient
-from support.items import Category
+from support.items import Category, Item, FoodItem, ClothingItem
 from support.donor import AidDonor
 from support.responses import DatabaseActionResponse
 from support.security import token_validator, check_access, check_admin
@@ -473,7 +473,7 @@ async def add_aid_donor(
         request : Request,
         donor : AidDonor,
     ) -> dict:
-    
+
     from db.db_builder import Aid_Donor
     from db.db_api import add_aid_donor as add_a_d
     log.info("'/aid_donor/' called from: " + str(request.client))
@@ -494,6 +494,43 @@ async def add_aid_donor(
         log.info("Aid donor added: " + str(donor))
     else:
         log.info("Unable to add donor " + str(response.error))
+
+    return response
+
+# =====================
+# API ENDPOINT: Add aid item
+# Receive an Item data structure from field
+# Convert it to a DB object and add it to the database
+# =====================
+
+@app.post("/inventory")
+async def add_aid_item(
+        request : Request,
+        item : Item,
+    ) -> dict:
+    
+    from db.db_builder import Item_DB
+    from db.db_api import add_aid_item
+    log.info("'/inventory/' called from: " + str(request.client))
+
+    add_item = Item_DB(
+        item_name = item.item_name,
+        item_quantity = item.item_quantity,
+        brand = item.item_brand,
+        expiry_date = item.expiry_date,
+        ingredients = item.ingredients,
+        allergen_info = item.allergen_info,
+        size = item.size,
+        gender = item.gender
+        # category_id
+    )
+
+    response = add_aid_item(add_item)
+
+    if response.error == None:
+        log.info("Aid item added: " + str(response.id))
+    else:
+        log.info("Unable to add item " + str(response.error))
 
     return response
 
