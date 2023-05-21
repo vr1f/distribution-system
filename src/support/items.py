@@ -41,8 +41,13 @@ class Item(BaseModel):
     item_name: str
     item_quantity: int
     item_brand: str
+    expiry_date: date
+    ingredients : str
+    allergen_info: str
+    gender: Gender
+    size: Size
 
-class FootItem(Item):
+class FoodItem(Item):
     """
     Class specifically for food items - inherits Item class
 
