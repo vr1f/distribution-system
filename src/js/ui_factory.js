@@ -54,9 +54,20 @@
         return;
       }
 
-      Object.values(row).map((content) => {
+      Object.keys(row).map((header) => {
         const cell = td.cloneNode();
-        cell.innerHTML = content;
+        const content = row[header];
+
+        switch(header) {
+          case "document_id":
+            cell.innerHTML = content && "&#128193;" || content;
+            break;
+
+          default:
+            cell.innerHTML = content;
+            break;
+        }
+
         tableRow.appendChild(cell);
       })
 
@@ -92,6 +103,12 @@
     Object.entries(attrs).map(([key, value]) => {
       input.setAttribute(key, value)
     });
+
+    // If the input is to be hidden, return the input element without
+    // wrappers
+    if (input.hasAttribute("hidden")) {
+      return input;
+    }
 
     // Build the label element
     label.innerHTML = labelText;
