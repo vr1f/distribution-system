@@ -53,10 +53,13 @@
       label: "ID Expiry", placeholder: "Enter ID expiry date (optional)",
       name: "id_expiry", type: "date"
     },
-    // {
-    //   label: "Upload Documents", id: "file",
-    //   name: "file", type: "file", multiple:"multiple"
-    // }
+    {
+      name: "document_id", id: "document_id", type: "number", hidden: true
+    },
+    {
+      label: "Upload Documents", id: "id_images",
+      type: "file", multiple:"multiple"
+    }
 
   ];
 
@@ -72,7 +75,8 @@
         age,
         nationality = undefined,
         id_no = undefined,
-        id_expiry = undefined
+        id_expiry = undefined,
+        document_id = undefined,
       } = params
       this.person_id = person_id;
       this.first_name = first_name;
@@ -81,6 +85,7 @@
       this.nationality = nationality;
       this.id_no = id_no;
       this.id_expiry = id_expiry;
+      this.document_id = document_id;
     }
   }
 
@@ -161,7 +166,7 @@
         headers: [
           "ID",
           "First Name", "Last Name", "Age",
-          "Nationality", "ID Number", "ID Expiry",
+          "Nationality", "ID Number", "ID Expiry", "ID Doc",
           "Address", "Family Size", "Partner", "Dependents"
         ],
         data: state.aidRecipient.aidRecipients
@@ -258,7 +263,7 @@
 
   // Sends aid recipient form data to API endpoint
   const fetchForm = async (formData) => {
-     await fetch("/aid_recipient", {
+    return await fetch("/aid_recipient", {
       method: "POST",
       headers: new Headers({
         "content-type": "application/json"
@@ -297,77 +302,103 @@
       // TODO
       // Additional behaviour if required
       return json
-    })
+    });
   }
 
 
-  // Uploads file to API endpoint and adds the file ID (returned from API) to the form data
-  // TO DO: Test again after backend completed
-  // TO DO: Add file_id field to Person
-  const fetchFile = async (files, formData) => {
-    await fetch("/aid_recipient", {
+  // Uploads file to API endpoint
+  const uploadFiles = async (files) => {
+    return await fetch("/id_img", {
       method: "POST",
       body: files
     })
     .then((response) => {
-      // TO DO: Change status no. accordingly when backend is completed
-      if (response.status != 201) {
+      if (!response.ok) {
         throw new Error("Unable to upload file!");
       }
       return response.json();
     })
-    .then((json) => {
-      // gets the file ID from API and adds to form data
-      formData["file_id"] =  json.file_id;
-      return json;
-    })
     .catch((error) => {
       alert(error.message);
-    })
+      return {id: undefined}
+    });
   }
 
   /**
    Submits data to the API endpoint to create an aid recipient
   */
   const onCreateRecipient = () => {
-    const formId = "modalForm";
 
-    // Get form elements as an array
-    const formElements = getFormInputsById(formId);
+    // Use a promise to first upload files if any
+    // then retrieve the file id to set as the "document_id" field
+    new Promise((resolve, reject) => {
+      // Check the file selector
+      const fileSelector = document.getElementById("id_images");
+      const docIdField = document.getElementById("document_id");
 
-    // Check that all required elements have values
-    const isValid = validateForm(formId);
-
-    if (!isValid) {
-      alert("Please enter all required information.");
-      return;
-    }
-
-    // Get data from form fields
-    var formData = formElements.reduce((inputVals, inputEl) => {
-      const field = inputEl.getAttribute("name");
-      let value = inputEl.value;
-      if (value != undefined) {
-        if (inputEl.type == "number") {
-          value = parseFloat(value);
-        }
-        inputVals[field] = value;
+      // Resolve immediately if docIdField has already been filled
+      // or if there are no files in the fileSelector
+      if (docIdField.value != "" || fileSelector.value == "") {
+        return resolve();
       }
-      return inputVals;
-    }, {})
-    // Check if user uploaded any files
-    // if (document.getElementById("file").value != "") {
-    //   // If files present
-    //   var files = new FormData();
-    //   for (const file of document.getElementById("file").files) {
-    //     files.append("file", file);
-    //   }
-    //   // Upload file to DB and add linking file ID key to recipient form
-    //   fetchFile(files, formData);
-    // }
 
-    // Add data to server database
-    fetchForm(formData);
+      // Generate FormData to upload the files to the server
+      const files = new FormData();
+      for (const file of fileSelector.files) {
+        files.append("files", file);
+      }
+
+      // Upload the files by querying the endpoint
+      uploadFiles(files)
+      .then((json) => {
+        // Get the document_id from the endpoint response
+        const { id: document_id } = json;
+
+        // Reject if document_id is undefined
+        (!document_id) && reject("Could not upload files.");
+
+        // Set the document_id
+        document.getElementById("document_id").value = document_id;
+
+        resolve();
+      });
+    })
+    .then(() => {
+      const formId = "modalForm";
+
+      // Get form elements as an array
+      const formElements = getFormInputsById(formId);
+
+      // Check that all required elements have values
+      const isValid = validateForm(formId);
+
+      if (!isValid) {
+        alert("Please enter all required information.");
+        return;
+      }
+
+      // Get data from form fields
+      const formData = formElements.reduce((inputVals, inputEl) => {
+        const field = inputEl.getAttribute("name");
+        let { value } = inputEl;
+
+        if (field && value != undefined) {
+          if (inputEl.type == "number") {
+            value = parseFloat(value);
+          }
+          inputVals[field] = value;
+        }
+        return inputVals;
+      }, {})
+
+      // Add data to server database
+      return fetchForm(formData);
+    })
+    .catch((error) => {
+      alert("Failed to add new recipient.");
+    });
+
+    return;
 
   }
 

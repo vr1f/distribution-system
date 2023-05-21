@@ -8,8 +8,10 @@
 
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
-from db.db_builder import User, Privileges, Login_Attempts, Lockout_Period, Aid_Recipient_DB, Person
-from db.db_builder import Categories, Lockout_List, Failed_Login, Aid_Donor, Item_DB
+from db.db_builder import User, Privileges, Login_Attempts, Lockout_Period, \
+    Aid_Recipient_DB, Person, Categories, Lockout_List, Failed_Login, \
+    Aid_Donor, Sensitive_Img, Item_DB
+from support.responses import DatabaseActionResponse
 from sqlalchemy import update
 from datetime import datetime, timedelta
 
@@ -289,13 +291,33 @@ def get_table_rows(
         with Session() as session:
             rows = session.query(Aid_Donor).all()
             return rows
-        
+
     if table == "item":
         with Session() as session:
             rows = session.query(Item_DB).all()
             return rows
 
     return []
+
+# =======================
+# ADD SENSITIVE ID DOCUMENT
+# Creates new record for storing ID documents
+# =======================
+def add_id_img_record(
+        engine: Engine,
+        new_images: Sensitive_Img
+    ):
+    response = DatabaseActionResponse()
+    try:
+        Session = sessionmaker(bind=engine)
+        with Session() as session:
+            session.add(new_images)
+            session.commit()
+            response.id = new_images.document_id
+    except Exception as e:
+        response.error = e
+
+    return response
 
 # =======================
 # ADD AID RECIPIENT

@@ -27,12 +27,16 @@ class AidDonor(Person):
         phone_number (str): mobile or landline
         email_address (str): email address
         preferred_comm (str): select either email or phone as the preferred mode of communication
+        org_name (str): name of organisation if applicable
+        org_abn (str): abn of organisation if applicable
     """
     donor_id: int = None
     mail_address: str = NO_KNOWN_ADDRESS
     phone_number: str
     email_address: str
     preferred_comm: Communication
+    org_name: str
+    org_abn: str
 
 class DonorOrganisation(BaseModel):
     """

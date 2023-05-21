@@ -9,7 +9,8 @@
 
 
 # Imports
-from fastapi import FastAPI, Request, HTTPException, status, Response
+from fastapi import FastAPI, Request, HTTPException, status, Response, \
+    File
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.templating import Jinja2Templates
@@ -21,7 +22,7 @@ from support.items import Category, Item, FoodItem, ClothingItem
 from support.donor import AidDonor
 from support.responses import DatabaseActionResponse
 from support.security import token_validator, check_access, check_admin
-
+from typing import Annotated
 
 # Initialise log:
 import support.logger as logger
@@ -198,11 +199,11 @@ def home(
     if context == "aid_donors":
         rows = get_table_rows(engine=engine, table=context)
         return rows
-    
+
     if context == "item":
         rows = get_table_rows(engine=engine, table=context)
         return rows
-    
+
     return {}
 
 # =====================
@@ -330,6 +331,36 @@ async def login_for_access_token(
 
 
 # =====================
+# API ENDPOINT: Upload sensitive images of aid recipients or donors
+# =====================
+@app.post("/id_img")
+async def add_id_images(
+        request: Request,
+        files: Annotated[list[bytes], File()]
+    ) -> dict:
+    from db.db_builder import Sensitive_Img
+    from db.db_api import add_id_img_record
+
+    # Create DB assignments using the first three files
+    new_images = Sensitive_Img(
+        img_1=files[0] if len(files) > 0 else None,
+        img_2=files[1] if len(files) > 1 else None,
+        img_3=files[2] if len(files) > 2 else None
+    )
+
+    # Commit to DB and get the response
+    response = add_id_img_record(engine=engine, new_images=new_images)
+
+    # Write to log
+    if response.error == None:
+        log.info("New ID documents added")
+    else:
+        log.info("Unable to add ID documents")
+
+    return response
+
+
+# =====================
 # API ENDPOINT: Create aid recipients in the system
 # Check JWT access token
 # Take request body as JSON
@@ -356,7 +387,8 @@ async def add_aid_recipient(
             dependents=recipient.dependents,
             nationality=recipient.nationality,
             id_no = recipient.id_no,
-            id_expiry = recipient.id_expiry
+            id_expiry = recipient.id_expiry,
+            document_id = recipient.document_id
         )
 
     response = add_a_r(engine, new_recipient)
@@ -489,7 +521,13 @@ async def add_aid_donor(
         mail_address=donor.mail_address,
         phone_number=donor.phone_number,
         email_address=donor.email_address,
-        preferred_comm=donor.preferred_comm
+        preferred_comm=donor.preferred_comm,
+        nationality=donor.nationality,
+        id_no = donor.id_no,
+        id_expiry = donor.id_expiry,
+        document_id = donor.document_id,
+        org_name = donor.org_name,
+        org_abn = donor.org_abn
     )
 
     response = add_a_d(engine, add_donor)
@@ -512,7 +550,7 @@ async def add_aid_item(
         request : Request,
         item : Item,
     ) -> dict:
-    
+
     from db.db_builder import Item_DB
     from db.db_api import add_aid_item
     log.info("'/inventory/' called from: " + str(request.client))
