@@ -469,13 +469,11 @@ async def add_aid_category(
 # =====================
 
 @app.post("/aid_donor")
-async def add_aid_category(
+async def add_aid_donor(
         request : Request,
         donor : AidDonor,
     ) -> dict:
-
-    print(donor)
-
+    
     from db.db_builder import Aid_Donor
     from db.db_api import add_aid_donor as add_a_d
     log.info("'/aid_donor/' called from: " + str(request.client))
@@ -489,8 +487,6 @@ async def add_aid_category(
         email_address=donor.email_address,
         preferred_comm=donor.preferred_comm
     )
-
-    print(donor.preferred_comm)
 
     response = add_a_d(engine, add_donor)
 
