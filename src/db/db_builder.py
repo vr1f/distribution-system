@@ -26,7 +26,7 @@ class Communication(str, enum.Enum):
     PHONE = 'phone'
     EMAIL = 'email'
 
-class Size(enum.Enum):
+class Size(str, enum.Enum):
     SMALL = 'S'
     MEDIUM = 'M'
     LARGE = 'L'
@@ -163,6 +163,7 @@ class Item(Base):
     item_id = Column(Integer, primary_key=True, autoincrement=True, onupdate="CASCADE")
     item_name = Column(String)
     item_quantity = Column(Integer)
+    brand = Column(String)
     category_id = Column(Integer, ForeignKey("category.category_id", ondelete="CASCADE", onupdate="CASCADE"))
     __mapper_args__ = {'inherit_condition': category_id == Categories.category_id}
 
@@ -177,7 +178,6 @@ class Food_Item(Item):
     expiry_date = Column(Date)
     ingredients = Column(String)
     allergen_info = Column(String)
-    brand = Column(String)
     __mapper_args__ = {'inherit_condition': item_id == Item.item_id}
 
 # =======================
@@ -189,7 +189,6 @@ class Clothing_Item(Item):
     __tablename__ = 'clothing_item'
     item_id = Column(Integer, ForeignKey("item.item_id", ondelete="CASCADE", onupdate="CASCADE"), primary_key=True)
     size = Column(Enum(Size))
-    brand = Column(String)
     __mapper_args__ = {'inherit_condition': item_id == Item.item_id}
 
 # =======================
