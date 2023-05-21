@@ -10,7 +10,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 from db.db_builder import User, Privileges, Login_Attempts, Lockout_Period, \
     Aid_Recipient_DB, Person, Categories, Lockout_List, Failed_Login, \
-    Aid_Donor, Sensitive_Img
+    Aid_Donor, Sensitive_Img, Item_DB
 from support.responses import DatabaseActionResponse
 from sqlalchemy import update
 from datetime import datetime, timedelta
@@ -291,6 +291,12 @@ def get_table_rows(
         with Session() as session:
             rows = session.query(Aid_Donor).all()
             return rows
+
+    if table == "item":
+        with Session() as session:
+            rows = session.query(Item_DB).all()
+            return rows
+
     return []
 
 # =======================
@@ -406,6 +412,27 @@ def add_aid_category(
             session.add(category)
             session.commit()
             response.id = category.category_id
+    except Exception as e:
+        response.error = e
+
+    return response
+
+# =======================
+# ADD AID ITEM
+# Adds an aid category to the database
+# =======================
+def add_aid_item(
+        engine: Engine,
+        item: Item_DB
+    ):
+    response = DatabaseActionResponse()
+
+    try:
+        Session = sessionmaker(bind=engine)
+        with Session() as session:
+            session.add(item)
+            session.commit()
+            response.id = item.item_id
     except Exception as e:
         response.error = e
 

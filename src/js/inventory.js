@@ -69,25 +69,27 @@
   class Inventory {
     constructor(params) {
       const {
-        id = undefined,
-        name,
-        brand = "",
-        category, //TODO
-        quantity,
-        size = "",
+        item_id = undefined,
+        item_name,
+        item_quantity,
+        item_brand = "",
         expiry_date = "",
-        main_ingredients = "",
-        allergens = "",
+        ingredients = "",
+        allergen_info = "",
+        size = "",
+        gender = "",
+        // category_id, //TODO
       } = params
-      this.id = id;
-      this.name = name;
-      this.brand = brand;
-      this.category = category;
-      this.quantity = quantity;
+      this.item_id = item_id;
+      this.item_name = item_name;
+      this.item_brand = item_brand;
+      this.item_quantity = item_quantity;
       this.size = size;
+      this.gender = gender;
       this.expiry_date = expiry_date;
-      this.main_ingredients = main_ingredients;
-      this.allergens = allergens;
+      this.ingredients = ingredients;
+      this.allergen_info = allergen_info;
+      // this.category_id = category_id;
     }
   }
 
@@ -108,6 +110,9 @@
           callback: this.showCategoryModal.bind(this)
         }
       }));
+
+      this.refreshRecords();
+
     }
 
     addInventory(inventory) {
@@ -168,32 +173,61 @@
       modalAction.innerHTML = "Submit";
       modalAction.addEventListener("click", onCreateCategory)
     }
+
+    /**
+      Renders the state into the page
+     */
+    renderStateTable = () => {
+      const tableData = {
+        headers: [
+          "ID",
+          "Name", "Brand", "Category", "Quantity", "Size", "Expiry Data",
+          "Main Ingredients", "Allergens"
+        ],
+        data: state.inventory.items
+      }
+      const tableNode = UiFactory && UiFactory.createTable(tableData)
+      const el = document.getElementById("dataTarget")
+      el.innerHTML = ""
+      el.appendChild(tableNode)
+    }
+
+    refreshRecords = async () => {
+      await fetch("/search", {
+        method: "POST",
+        headers: new Headers({
+          "content-type": "application/json"
+        }),
+        body: JSON.stringify({ context: "item" })
+      })
+        .then((response) => {
+          if (response.status == 401) { throw new Error("Invalid credentials"); }
+          if (response.status != 200) { throw new Error("Bad Server Response"); }
+          return response.json();
+        })
+        .then((json) => {
+          if (("error" in json) && json.error != undefined) {
+            throw new Error(json.error);
+          }
+          // Clear state
+          this.items = [];
+
+          // Add
+          json.map((row) => {
+            this.addInventory(new Inventory(row));
+          });
+
+          // Render the table
+          this.renderStateTable();
+        })
+        .catch((error) => {
+          alert(error);
+        })
+    }
   }
 
   /** State of aidRecipients in the system */
   state.inventory = new InventoryState()
-
-  /**
-    Adds event listeners to various DOM elements
-   */
-  const addEventListeners = () => {
-    /** @debug */
-    document
-      .getElementById("testFactory")
-      .addEventListener("click", () => {
-        const testData = {
-          headers: [
-              "ID", "Name", "Brand", "Category", "Quantity", "Size",
-              "Expiry Date", "Main Ingredients", "Allergens"
-            ], data: state.inventory.items
-        }
-        const tableNode = UiFactory && UiFactory.createTable(testData)
-        const el = document.getElementById("factoryTarget")
-        el.innerHTML = ""
-        el.appendChild(tableNode)
-      })
-    ;
-  }
 
   /**
     Retrieves all child `input` elements of a given element by its `id`
@@ -308,7 +342,7 @@
   }
 
   /**
-   Submits data to the API endpoint to create an aid recipient
+   Submits data to the API endpoint to create category
   */
   const onCreateCategory = () => {
     const formId = "modalForm";
@@ -378,23 +412,7 @@
     Run on load
    */
   window.addEventListener("load", () => {
-
     addEventListeners();
-
-    /**
-      @debug Dummy state
-     */
-    state.inventory.addInventory(
-      new Inventory({
-        name: "Spam", category: "Canned Food", quantity: 5
-      })
-    )
-    state.inventory.addInventory(
-      new Inventory({
-        name: "Mee Goreng", category: "Instant Noodles", quantity: 8
-      })
-    )
-
     console.log(state)
   })
 })()
