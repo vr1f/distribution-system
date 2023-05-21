@@ -519,7 +519,13 @@ async def add_aid_category(
         mail_address=donor.mail_address,
         phone_number=donor.phone_number,
         email_address=donor.email_address,
-        preferred_comm=donor.preferred_comm
+        preferred_comm=donor.preferred_comm,
+        nationality=donor.nationality,
+        id_no = donor.id_no,
+        id_expiry = donor.id_expiry,
+        document_id = donor.document_id,
+        org_name = donor.org_name,
+        org_abn = donor.org_abn
     )
 
     print(donor.preferred_comm)

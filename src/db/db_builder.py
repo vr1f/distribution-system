@@ -97,7 +97,7 @@ class Person(Base):
     id_expiry = Column(String)
     aid_recipient_db = relationship('Aid_Recipient_DB', backref='person', passive_deletes=True)
     document_id = Column(Integer, ForeignKey("sensitive_img.document_id", ondelete="CASCADE", onupdate="CASCADE"))
-    
+
 
 
 # =======================
@@ -127,6 +127,8 @@ class Aid_Donor(Person):
     phone_number = Column(String)
     email_address = Column(String)
     preferred_comm = Column(Enum(Communication))
+    org_name = Column(String)
+    org_abn = Column(String)
     __mapper_args__ = {'inherit_condition': donor_id == Person.person_id}
 
 # =======================
