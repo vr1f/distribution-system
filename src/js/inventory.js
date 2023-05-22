@@ -390,6 +390,9 @@
         throw new Error(json.error);
       }
 
+      // Close the modal
+      document.getElementById("modalDismiss").click();
+
       // TODO
       // Additional behaviour after success
       console.log(json)
