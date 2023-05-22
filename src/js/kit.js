@@ -68,7 +68,6 @@
   // }
 
   class KitsState {
-
     constructor() {
       this.aidKits = [];
       this.aidKitItems = [];
@@ -80,7 +79,6 @@
           callback: this.showKitModal.bind(this)
         }
       }));
-
       window.dispatchEvent(new CustomEvent("app.register.callback", {
         detail: {
           eventName: "aid_kit.edit",
@@ -115,8 +113,6 @@
     }
 
     showEditKitModal(modalElements) {
-      // alert("To implement")
-      
       const {
         modalHeading,
         modalBody,
@@ -142,7 +138,6 @@
           if (element.name == "item_id") {
             element.options = this.items.map((item) => {
               return {
-          
                 name: item.item_name,
                 value: item.item_id
               }
@@ -176,10 +171,10 @@
           if (("error" in json) && json.error != undefined) {
             throw new Error(json.error);
           }
-          // Set categories to those returned from server
+
           this.aidKits = json;
 
-          console.log("items updated");
+          console.log("kits updated");
         })
         .catch((error) => {
           alert(error);
@@ -305,29 +300,29 @@
       body: JSON.stringify(formData)
     }
     )
-      .then((response) => {
-        if (response.status == 401) { throw new Error("Invalid credentials"); }
-        if (response.status != 200) { throw new Error("Bad Server Response"); }
-        return response.json();
-      })
-      .then((json) => {
-        if (("error" in json) && json.error != undefined) {
-          throw new Error(json.error);
-        }
+    .then((response) => {
+      if (response.status == 401) { throw new Error("Invalid credentials"); }
+      if (response.status != 200) { throw new Error("Bad Server Response"); }
+      return response.json();
+    })
+    .then((json) => {
+      if (("error" in json) && json.error != undefined) {
+        throw new Error(json.error);
+      }
 
-        // Close the modal
-        document.getElementById("modalDismiss").click();
+      // Close the modal
+      document.getElementById("modalDismiss").click();
 
-        // Additional behaviour after success
-        console.log(json)
-        alert("Success!")
+      // Additional behaviour after success
+      console.log(json)
+      alert("Success!")
 
-        return json;
-      })
-      .catch((error) => {
-        alert(error);
-        return [];
-      });
+      return json;
+    })
+    .catch((error) => {
+      alert(error);
+      return [];
+    });
   }
 
   const onEditKit = () => {
@@ -344,8 +339,6 @@
       return;
     }
 
-
-    
     // Get data from form fields
     const formData = formElements.reduce((inputVals, inputEl) => {
       const field = inputEl.getAttribute("name");
@@ -390,12 +383,12 @@
       alert(error);
       return [];
     });
-}
+  }
 
   /**
     Run on load
    */
   window.addEventListener("load", () => {
-  console.log("kit.js")
-})
-}) ()
+    console.log("kit.js")
+  })
+})()
