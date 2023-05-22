@@ -297,6 +297,11 @@ def get_table_rows(
             rows = session.query(Item_DB).all()
             return rows
 
+    if table == "category":
+        with Session() as session:
+            rows = session.query(Categories).all()
+            return rows
+
     return []
 
 # =======================

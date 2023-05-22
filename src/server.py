@@ -180,27 +180,16 @@ def home(
     ) -> _TemplateResponse:
 
     log.info("'/search' called from: " + str(request.client))
-    # token_validator(secret_key, request, log)
+    #TODO token_validator(secret_key, request, log)
 
-    # TODO: look up the relevant table based on "option" key
-    # searchParams = {
-    #     "context": "" # recipient|donor|category|inventory
-    # }
-
-    #TODO: return the contents of the relevant table.
+    # return the contents of the relevant table.
     from db.db_api import get_table_rows
 
     context = searchParams["context"]
 
-    if context == "aid_recipients":
-        rows = get_table_rows(engine=engine, table=context)
-        return rows
-
-    if context == "aid_donors":
-        rows = get_table_rows(engine=engine, table=context)
-        return rows
-
-    if context == "item":
+    if context in [
+        "aid_recipients", "aid_donors", "item", "category"
+    ]:
         rows = get_table_rows(engine=engine, table=context)
         return rows
 
