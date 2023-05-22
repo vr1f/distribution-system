@@ -569,7 +569,7 @@ async def add_aid_item(
 # =====================
 
 @app.post("/aid_kit")
-async def add_aid_item(
+async def add_aid_kit(
         request : Request,
         request_kit : AidKit,
     ) -> dict:
@@ -598,7 +598,7 @@ async def add_aid_item(
 # =====================
 
 @app.put("/aid_kit")
-async def add_aid_item(
+async def add_aid_kit_item(
         request : Request,
         kit_item : AidKitItem,
     ) -> dict:
