@@ -15,19 +15,19 @@
   state.template.addInventoryFormElements = [
     {
       label: "Name", placeholder: "Name",
-      name:"name", required: true
+      name:"item_name", required: true
     },
     {
       label: "Brand", placeholder: "Enter Brand (optional)",
-      name: "brand"
+      name: "item_brand"
     },
     {
-      label: "TODO Category", placeholder: "TODO, SELECT CATEGORY",
-      name: "category", required: true
+      type: "select", name:"category_id", required: true,
+      options: [], label: "Category"
     },
     {
       label: "Quantity", placeholder: "Enter Quantity",
-      name: "quantity", type: "number", required: true
+      name: "item_quantity", type: "number", required: true
     },
     {
       label: "Size", placeholder: "Enter 1, 2, 3 or XL, XXL (optional)",
@@ -39,11 +39,11 @@
     },
     {
       label: "Main Ingredients", placeholder: "Enter main ingredients (optional)",
-      name: "main_ingredients"
+      name: "ingredients"
     },
     {
       label: "Allergens", placeholder: "Enter any allergens (optional)",
-      name: "allergens"
+      name: "allergen_info"
     },
   ];
 
@@ -53,7 +53,7 @@
       name:"category_name", required: true
     },
     {
-      type: "select", name:"status", required: true,
+      type: "select", name:"status", required: true, label: "Status",
       options: [
         {name: "Status Low", value: "low"},
         {name: "Status Medium", value: "medium"},
@@ -77,25 +77,32 @@
         ingredients = "",
         allergen_info = "",
         size = "",
-        gender = "",
-        // category_id, //TODO
+        category_id,
       } = params
       this.item_id = item_id;
       this.item_name = item_name;
       this.item_brand = item_brand;
+      this.category = state.inventory.categories.reduce((value, category) => {
+        // Dynamically map category_id to category_name
+        if (category_id == category.category_id) {
+          value = category.category_name;
+        }
+        return value;
+      }, "")
       this.item_quantity = item_quantity;
       this.size = size;
-      this.gender = gender;
       this.expiry_date = expiry_date;
       this.ingredients = ingredients;
       this.allergen_info = allergen_info;
-      // this.category_id = category_id;
     }
   }
 
   class InventoryState {
     constructor() {
-      this.items = []
+      this.items = [];
+
+      // object.keys = {category_id, category_name, status}
+      this.categories = [];
 
       window.dispatchEvent(new CustomEvent("app.register.callback", {
         detail: {
@@ -111,8 +118,13 @@
         }
       }));
 
-      this.refreshRecords();
-
+      // Fetch categories and inventory records from the server
+      new Promise((resolve, reject) => {
+        this.refreshCategories(resolve);
+      })
+      .then(() => {
+        this.refreshRecords();
+      })
     }
 
     addInventory(inventory) {
@@ -140,7 +152,19 @@
 
       // Form elements in the body
       const inputForm = window.UiFactory.createModalForm(
-        state.template.addInventoryFormElements
+        state.template.addInventoryFormElements.map((element) => {
+          // Map categories to selector
+          if (element.name == "category_id") {
+            element.options = this.categories.map((category) => {
+              return {
+                name: category.category_name,
+                value: category.category_id
+              }
+            });
+          }
+
+          return element;
+        })
       )
       modalBody.innerHTML = ""
       modalBody.appendChild(inputForm)
@@ -192,6 +216,9 @@
       el.appendChild(tableNode)
     }
 
+    /**
+      Refreshes inventory records from the server
+     */
     refreshRecords = async () => {
       await fetch("/search", {
         method: "POST",
@@ -222,7 +249,41 @@
         })
         .catch((error) => {
           alert(error);
+        });
+    }
+
+    /**
+      Refreshes inventory categories from the server
+      @param {function} done - Call back once the fetch promise is complete.
+     */
+    refreshCategories = async (done) => {
+      await fetch("/search", {
+        method: "POST",
+        headers: new Headers({
+          "content-type": "application/json"
+        }),
+        body: JSON.stringify({ context: "category" })
+      })
+        .then((response) => {
+          if (response.status == 401) { throw new Error("Invalid credentials"); }
+          if (response.status != 200) { throw new Error("Bad Server Response"); }
+          return response.json();
         })
+        .then((json) => {
+          if (("error" in json) && json.error != undefined) {
+            throw new Error(json.error);
+          }
+          // Set categories to those returned from server
+          this.categories = json;
+
+          console.log("categories updated");
+        })
+        .catch((error) => {
+          alert(error);
+        })
+        .finally(() => {
+          done && done();
+        });
     }
   }
 
@@ -296,7 +357,7 @@
       const field = inputEl.getAttribute("name");
       let value = inputEl.value;
       if (value != undefined) {
-        if (inputEl.type == "number") {
+        if (inputEl.type == "number" || field == "category_id") {
           value = parseFloat(value);
         }
         inputVals[field] = value;
@@ -323,10 +384,15 @@
         throw new Error(json.error);
       }
 
-      // TODO
+      // Close the modal
+      document.getElementById("modalDismiss").click();
+
       // Additional behaviour after success
       console.log(json)
       alert("Success!")
+
+      // Refresh the inventory list
+      state.inventory.refreshRecords();
 
       return json;
     })
@@ -393,7 +459,6 @@
       // Close the modal
       document.getElementById("modalDismiss").click();
 
-      // TODO
       // Additional behaviour after success
       console.log(json)
       alert("Success!")
@@ -405,17 +470,8 @@
       return [];
     })
     .finally((json) => {
-      // TODO
-      // Additional behaviour if required
-      return json
+      // Update the category list from server
+      state.inventory.refreshCategories();
     });
   }
-
-  /**
-    Run on load
-   */
-  window.addEventListener("load", () => {
-    addEventListeners();
-    console.log(state)
-  })
 })()
