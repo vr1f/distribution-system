@@ -15,12 +15,14 @@ class StatusEnum(str, enum.Enum):
     MEDIUM = 'medium'
     HIGH = 'high'
 
+#! Not used, causes problems for an optional field
 class Size(str, enum.Enum):
     SMALL = 'S'
     MEDIUM = 'M'
     LARGE = 'L'
     XLarge = 'XL'
 
+#! Not used, removed gender from item column
 class Gender(str, enum.Enum):
     FEMALE = 'female'
     MALE = 'male'
@@ -41,11 +43,11 @@ class Item(BaseModel):
     item_name: str
     item_quantity: int
     item_brand: str
-    expiry_date: date
+    expiry_date: str
     ingredients : str
     allergen_info: str
-    gender: Gender
-    size: Size
+    size: str
+    category_id: int
 
 class FoodItem(Item):
     """

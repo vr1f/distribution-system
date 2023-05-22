@@ -26,6 +26,7 @@ class Communication(str, enum.Enum):
     PHONE = 'phone'
     EMAIL = 'email'
 
+#! Not used, causes problems for optional field
 class Size(str, enum.Enum):
     SMALL = 'S'
     MEDIUM = 'M'
@@ -172,39 +173,14 @@ class Item_DB(Base):
     item_name = Column(String)
     item_quantity = Column(Integer)
     item_brand = Column(String)
-    expiry_date = Column(Date)
+    expiry_date = Column(String)
     ingredients = Column(String)
     allergen_info = Column(String)
-    size = Column(Enum(Size))
-    gender = Column(Enum(Gender))
+    # size = Column(Enum(Size))
+    size = Column(String)
     category_id = Column(Integer, ForeignKey("category.category_id", ondelete="CASCADE", onupdate="CASCADE"))
     __mapper_args__ = {'inherit_condition': category_id == Categories.category_id}
 
-# =======================
-# FOOD_ITEM
-# Inherits Item class. Further includes food details
-# PK is item_id from item table
-# =======================
-""" class Food_Item(Item_DB):
-    __tablename__ = 'food_item'
-    item_id = Column(Integer, ForeignKey("item.item_id", ondelete="CASCADE", onupdate="CASCADE"), primary_key=True)
-    expiry_date = Column(Date)
-    ingredients = Column(String)
-    allergen_info = Column(String)
-    __mapper_args__ = {'inherit_condition': item_id == Item_DB.item_id}
- """
-# =======================
-# CLOTHING_ITEM
-# Inherits Item class. Further clothing details
-# PK is item_id from item table
-# =======================
-""" class Clothing_Item(Item_DB):
-    __tablename__ = 'clothing_item'
-    item_id = Column(Integer, ForeignKey("item.item_id", ondelete="CASCADE", onupdate="CASCADE"), primary_key=True)
-    size = Column(Enum(Size))
-    gender = Column(Enum(Gender))
-    __mapper_args__ = {'inherit_condition': item_id == Item_DB.item_id}
- """
 # =======================
 # AID_KIT
 # Aid kits that include a combination of items

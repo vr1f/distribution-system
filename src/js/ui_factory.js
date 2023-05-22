@@ -132,12 +132,14 @@
    */
   window.UiFactory.createSelectBox = (inputEl) => {
     const{
+      label:labelText,
       options,
       ...attrs
     } = inputEl;
 
     // Artefacts
     const wrapper = document.createElement("div");
+    const label = document.createElement("label");
     const select = document.createElement("select");
     const option = document.createElement("option");
 
@@ -156,8 +158,12 @@
       select.appendChild(optionEl)
     });
 
+    // Build the label element
+    label.innerHTML = labelText;
+
     // Build the wrapper
     wrapper.classList.add("form-group", "pb-3");
+    labelText && wrapper.appendChild(label);
     wrapper.appendChild(select);
 
     return wrapper;

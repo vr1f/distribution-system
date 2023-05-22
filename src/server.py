@@ -180,27 +180,16 @@ def home(
     ) -> _TemplateResponse:
 
     log.info("'/search' called from: " + str(request.client))
-    # token_validator(secret_key, request, log)
+    #TODO token_validator(secret_key, request, log)
 
-    # TODO: look up the relevant table based on "option" key
-    # searchParams = {
-    #     "context": "" # recipient|donor|category|inventory
-    # }
-
-    #TODO: return the contents of the relevant table.
+    # return the contents of the relevant table.
     from db.db_api import get_table_rows
 
     context = searchParams["context"]
 
-    if context == "aid_recipients":
-        rows = get_table_rows(engine=engine, table=context)
-        return rows
-
-    if context == "aid_donors":
-        rows = get_table_rows(engine=engine, table=context)
-        return rows
-
-    if context == "item":
+    if context in [
+        "aid_recipients", "aid_donors", "item", "category"
+    ]:
         rows = get_table_rows(engine=engine, table=context)
         return rows
 
@@ -558,16 +547,15 @@ async def add_aid_item(
     add_item = Item_DB(
         item_name = item.item_name,
         item_quantity = item.item_quantity,
-        brand = item.item_brand,
+        item_brand = item.item_brand,
         expiry_date = item.expiry_date,
         ingredients = item.ingredients,
         allergen_info = item.allergen_info,
         size = item.size,
-        gender = item.gender
-        # category_id
+        category_id = item.category_id
     )
 
-    response = add_aid_item(add_item)
+    response = add_aid_item(engine=engine, item=add_item)
 
     if response.error == None:
         log.info("Aid item added: " + str(response.id))
