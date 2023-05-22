@@ -10,7 +10,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 from db.db_builder import User, Privileges, Login_Attempts, Lockout_Period, \
     Aid_Recipient_DB, Person, Categories, Lockout_List, Failed_Login, \
-    Aid_Donor, Sensitive_Img, Item_DB
+    Aid_Donor, Sensitive_Img, Item_DB, Aid_Kit, Aid_Kit_Item
 from support.responses import DatabaseActionResponse
 from sqlalchemy import update
 from datetime import datetime, timedelta
@@ -438,6 +438,46 @@ def add_aid_item(
             session.add(item)
             session.commit()
             response.id = item.item_id
+    except Exception as e:
+        response.error = e
+
+    return response
+
+# =======================
+# ADD AID KIT
+# =======================
+def add_aid_kit(
+    engine: Engine,
+    kit: Aid_Kit
+):
+    response = DatabaseActionResponse()
+
+    try:
+        Session = sessionmaker(bind=engine)
+        with Session() as session:
+            session.add(kit)
+            session.commit()
+            response.id = kit.aid_kit_id
+    except Exception as e:
+        response.error = e
+
+    return response
+
+# =======================
+# ADD AID KIT ITEM
+# =======================
+def add_aid_kit_item(
+    engine: Engine,
+    kit_item: Aid_Kit_Item
+):
+    response = DatabaseActionResponse()
+
+    try:
+        Session = sessionmaker(bind=engine)
+        with Session() as session:
+            session.add(kit_item)
+            session.commit()
+            response.id = kit_item.id
     except Exception as e:
         response.error = e
 

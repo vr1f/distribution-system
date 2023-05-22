@@ -18,7 +18,7 @@ from starlette.templating import _TemplateResponse
 import uvicorn
 from sqlalchemy.exc import OperationalError, IntegrityError
 from support.recipients import PersonID, AidRecipient
-from support.items import Category, Item, FoodItem, ClothingItem
+from support.items import Category, Item, AidKit, AidKitItem
 from support.donor import AidDonor
 from support.responses import DatabaseActionResponse
 from support.security import token_validator, check_access, check_admin
@@ -561,6 +561,64 @@ async def add_aid_item(
         log.info("Aid item added: " + str(response.id))
     else:
         log.info("Unable to add item " + str(response.error))
+
+    return response
+
+# =====================
+# API ENDPOINT: Add aid kit
+# =====================
+
+@app.post("/aid_kit")
+async def add_aid_item(
+        request : Request,
+        request_kit : AidKit,
+    ) -> dict:
+
+    from db.db_builder import Aid_Kit
+    from db.db_api import add_aid_kit
+    log.info("'/aid_kit/' called from: " + str(request.client))
+
+    kit = Aid_Kit(
+        aid_kit_id = request_kit.aid_kit_id,
+        aidkit_name = request_kit.aidkit_name,
+        aidkit_description = request_kit.aidkit_description
+    )
+
+    response = add_aid_kit(engine=engine, kit=kit)
+
+    if response.error == None:
+        log.info("Aid kit added: " + str(response.id))
+    else:
+        log.info("Unable to add aid kit " + str(response.error))
+
+    return response
+
+# =====================
+# API ENDPOINT: Puts an item in an aid kit
+# =====================
+
+@app.put("/aid_kit")
+async def add_aid_item(
+        request : Request,
+        kit_item : AidKitItem,
+    ) -> dict:
+
+    from db.db_builder import Aid_Kit_Item
+    from db.db_api import add_aid_kit_item
+    log.info("'/aid_kit/' called from: " + str(request.client))
+
+    kit_item = Aid_Kit_Item(
+        aid_kit_id = kit_item.aid_kit_id,
+        item_id = kit_item.item_id,
+        quantity = kit_item.quantity
+    )
+
+    response = add_aid_kit_item(engine=engine, kit_item=kit_item)
+
+    if response.error == None:
+        log.info("Aid kit item added: " + str(response.id))
+    else:
+        log.info("Unable to add aid kit item " + str(response.error))
 
     return response
 
