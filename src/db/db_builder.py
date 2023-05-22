@@ -26,6 +26,7 @@ class Communication(str, enum.Enum):
     PHONE = 'phone'
     EMAIL = 'email'
 
+#! Not used, causes problems for optional field
 class Size(str, enum.Enum):
     SMALL = 'S'
     MEDIUM = 'M'
@@ -172,10 +173,11 @@ class Item_DB(Base):
     item_name = Column(String)
     item_quantity = Column(Integer)
     item_brand = Column(String)
-    expiry_date = Column(Date)
+    expiry_date = Column(String)
     ingredients = Column(String)
     allergen_info = Column(String)
-    size = Column(Enum(Size))
+    # size = Column(Enum(Size))
+    size = Column(String)
     category_id = Column(Integer, ForeignKey("category.category_id", ondelete="CASCADE", onupdate="CASCADE"))
     __mapper_args__ = {'inherit_condition': category_id == Categories.category_id}
 

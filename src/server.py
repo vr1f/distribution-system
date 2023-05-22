@@ -547,16 +547,15 @@ async def add_aid_item(
     add_item = Item_DB(
         item_name = item.item_name,
         item_quantity = item.item_quantity,
-        brand = item.item_brand,
+        item_brand = item.item_brand,
         expiry_date = item.expiry_date,
         ingredients = item.ingredients,
         allergen_info = item.allergen_info,
         size = item.size,
-        gender = item.gender
-        # category_id
+        category_id = item.category_id
     )
 
-    response = add_aid_item(add_item)
+    response = add_aid_item(engine=engine, item=add_item)
 
     if response.error == None:
         log.info("Aid item added: " + str(response.id))
