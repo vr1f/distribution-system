@@ -41,31 +41,31 @@
   /**
     Representing info a kit item, this should match `items.py`
    */
-  class Kit {
-    constructor(params) {
-      const {
-        aid_kit_id = undefined,
-        aidkit_name,
-        aidkit_description
-      } = params
-      this.aid_kit_id = aid_kit_id;
-      this.aidkit_name = aidkit_name;
-      this.aidkit_description = aidkit_description;
-    }
-  }
+  // class Kit {
+  //   constructor(params) {
+  //     const {
+  //       aid_kit_id = undefined,
+  //       aidkit_name,
+  //       aidkit_description
+  //     } = params
+  //     this.aid_kit_id = aid_kit_id;
+  //     this.aidkit_name = aidkit_name;
+  //     this.aidkit_description = aidkit_description;
+  //   }
+  // }
 
-  class KitItem {
-    constructor(params) {
-      const {
-        aid_kit_id = undefined,
-        item_id,
-        aidkit_description
-      } = params
-      this.aid_kit_id = aid_kit_id;
-      this.item_id = item_id;
-      this.quantity = quantity;
-    }
-  }
+  // class KitItem {
+  //   constructor(params) {
+  //     const {
+  //       aid_kit_id = undefined,
+  //       item_id,
+  //       quantity
+  //     } = params
+  //     this.aid_kit_id = aid_kit_id;
+  //     this.item_id = item_id;
+  //     this.quantity = quantity;
+  //   }
+  // }
 
   class KitsState {
 
