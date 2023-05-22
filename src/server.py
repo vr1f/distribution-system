@@ -574,6 +574,7 @@ async def add_aid_kit(
         request_kit : AidKit,
     ) -> dict:
 
+    #print(request_kit)
     from db.db_builder import Aid_Kit
     from db.db_api import add_aid_kit
     log.info("'/aid_kit/' called from: " + str(request.client))
