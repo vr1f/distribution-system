@@ -188,7 +188,7 @@ def home(
     context = searchParams["context"]
 
     if context in [
-        "aid_recipients", "aid_donors", "item", "category"
+        "aid_recipients", "aid_donors", "item", "category", "aid_kits"
     ]:
         rows = get_table_rows(engine=engine, table=context)
         return rows
@@ -604,6 +604,7 @@ async def add_aid_kit_item(
         kit_item : AidKitItem,
     ) -> dict:
 
+    print(kit_item)
     from db.db_builder import Aid_Kit_Item
     from db.db_api import add_aid_kit_item
     log.info("'/aid_kit/' called from: " + str(request.client))

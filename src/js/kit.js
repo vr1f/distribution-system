@@ -23,6 +23,21 @@
     }
   ]
 
+  state.template.editAidKitFormElements = [
+    {
+      type: "select", name: "aid_kit_id", required: true,
+      options: [], label: "Kit"
+    },
+    {
+      type: "select", name: "item_id", required: true,
+      options: [], label: "Item"
+    },
+    {
+      label: "Quantity", placeholder: "Enter Quantity",
+      name: "quantity", type: "number", step: 1, min: 1, required: true
+    }
+  ]
+
   /**
     Representing info a kit item, this should match `items.py`
    */
@@ -39,9 +54,25 @@
     }
   }
 
+  class KitItem {
+    constructor(params) {
+      const {
+        aid_kit_id = undefined,
+        item_id,
+        aidkit_description
+      } = params
+      this.aid_kit_id = aid_kit_id;
+      this.item_id = item_id;
+      this.quantity = quantity;
+    }
+  }
+
   class KitsState {
+
     constructor() {
-      this.aidKits = []
+      this.aidKits = [];
+      this.aidKitItems = [];
+      this.items = [];
 
       window.dispatchEvent(new CustomEvent("app.register.callback", {
         detail: {
@@ -50,10 +81,14 @@
         }
       }));
 
-    }
-
-    addKit(aidKit) {
-      this.aidKits.push(aidKit);
+      window.dispatchEvent(new CustomEvent("app.register.callback", {
+        detail: {
+          eventName: "aid_kit.edit",
+          callback: this.showEditKitModal.bind(this)
+        }
+      }));
+      this.refreshKits();
+      this.refreshItems();
     }
 
     showKitModal(modalElements) {
@@ -65,7 +100,7 @@
       } = modalElements
 
       // Heading
-      modalHeading.innerHTML = "Add aid kit";
+      modalHeading.innerHTML = "Edit aid kit";
 
       // Form elements in the body
       const inputForm = window.UiFactory.createModalForm(
@@ -77,6 +112,111 @@
       // Submit button
       modalAction.innerHTML = "Submit";
       modalAction.addEventListener("click", onCreateKit)
+    }
+
+    showEditKitModal(modalElements) {
+      // alert("To implement")
+      
+      const {
+        modalHeading,
+        modalBody,
+        modalAction
+      } = modalElements
+
+      // Heading
+      modalHeading.innerHTML = "Add an Item to a Kit";
+
+      // Form elements in the body
+      const inputForm = window.UiFactory.createModalForm(
+        state.template.editAidKitFormElements.map((element) => {
+          // Map aid kits to selector
+          if (element.name == "aid_kit_id") {
+            element.options = this.aidKits.map((aidKit) => {
+              return {
+                name: aidKit.aidkit_name,
+                value: aidKit.aid_kit_id
+              }
+            });
+          }
+          // Map items to selector
+          if (element.name == "item_id") {
+            element.options = this.items.map((item) => {
+              return {
+          
+                name: item.item_name,
+                value: item.item_id
+              }
+            });
+          }
+          return element;
+        })
+      )
+      modalBody.innerHTML = ""
+      modalBody.appendChild(inputForm)
+
+      // Submit button
+      modalAction.innerHTML = "Submit";
+      modalAction.addEventListener("click", onEditKit)
+    }
+
+    refreshKits = async () => {
+      await fetch("/search", {
+        method: "POST",
+        headers: new Headers({
+          "content-type": "application/json"
+        }),
+        body: JSON.stringify({ context: "aid_kits" })
+      })
+        .then((response) => {
+          if (response.status == 401) { throw new Error("Invalid credentials"); }
+          if (response.status != 200) { throw new Error("Bad Server Response"); }
+          return response.json();
+        })
+        .then((json) => {
+          if (("error" in json) && json.error != undefined) {
+            throw new Error(json.error);
+          }
+          // Set categories to those returned from server
+          this.aidKits = json;
+
+          console.log("items updated");
+        })
+        .catch((error) => {
+          alert(error);
+        })
+        .finally(() => {
+          done && done();
+        });
+    }
+
+    refreshItems = async () => {
+      await fetch("/search", {
+        method: "POST",
+        headers: new Headers({
+          "content-type": "application/json"
+        }),
+        body: JSON.stringify({ context: "item" })
+      })
+        .then((response) => {
+          if (response.status == 401) { throw new Error("Invalid credentials"); }
+          if (response.status != 200) { throw new Error("Bad Server Response"); }
+          return response.json();
+        })
+        .then((json) => {
+          if (("error" in json) && json.error != undefined) {
+            throw new Error(json.error);
+          }
+          // Set categories to those returned from server
+          this.items = json;
+
+          console.log("items updated");
+        })
+        .catch((error) => {
+          alert(error);
+        })
+        .finally(() => {
+          done && done();
+        });
     }
   }
 
@@ -92,7 +232,7 @@
     const formElements = [
       ...document
         .getElementById(id)
-        .getElementsByTagName("input")
+        .querySelectorAll("input,select")
     ];
     return formElements;
   }
@@ -129,42 +269,42 @@
   /**
      Submits data to the API endpoint to create kit
     */
-     const onCreateKit = () => {
-      const formId = "modalForm";
-  
-      // Get form elements as an array
-      const formElements = getFormInputsById(formId);
-  
-      // Check that all required elements have values
-      const isValid = validateForm(formId);
-  
-      if (!isValid) {
-        alert("Please enter all required information.");
-        return;
+  const onCreateKit = () => {
+    const formId = "modalForm";
+
+    // Get form elements as an array
+    const formElements = getFormInputsById(formId);
+
+    // Check that all required elements have values
+    const isValid = validateForm(formId);
+
+    if (!isValid) {
+      alert("Please enter all required information.");
+      return;
+    }
+
+    // Get data from form fields
+    const formData = formElements.reduce((inputVals, inputEl) => {
+      const field = inputEl.getAttribute("name");
+      let value = inputEl.value;
+      if (value != undefined) {
+        if (inputEl.type == "number") {
+          value = parseFloat(value);
+        }
+        inputVals[field] = value;
       }
-  
-      // Get data from form fields
-      const formData = formElements.reduce((inputVals, inputEl) => {
-        const field = inputEl.getAttribute("name");
-        let value = inputEl.value;
-        if (value != undefined) {
-          if (inputEl.type == "number") {
-            value = parseFloat(value);
-          }
-          inputVals[field] = value;
-        }
-        return inputVals;
-      }, {})
-  
-      // Generate a request to the API
-      fetch("/aid_kit", {
-          method: "POST",
-          headers: new Headers({
-            "content-type": "application/json"
-          }),
-          body: JSON.stringify(formData)
-        }
-      )
+      return inputVals;
+    }, {})
+
+    // Generate a request to the API
+    fetch("/aid_kit", {
+      method: "POST",
+      headers: new Headers({
+        "content-type": "application/json"
+      }),
+      body: JSON.stringify(formData)
+    }
+    )
       .then((response) => {
         if (response.status == 401) { throw new Error("Invalid credentials"); }
         if (response.status != 200) { throw new Error("Bad Server Response"); }
@@ -174,26 +314,88 @@
         if (("error" in json) && json.error != undefined) {
           throw new Error(json.error);
         }
-  
+
         // Close the modal
         document.getElementById("modalDismiss").click();
-  
+
         // Additional behaviour after success
         console.log(json)
         alert("Success!")
-  
+
         return json;
       })
       .catch((error) => {
         alert(error);
         return [];
       });
+  }
+
+  const onEditKit = () => {
+    const formId = "modalForm";
+
+    // Get form elements as an array
+    const formElements = getFormInputsById(formId);
+
+    // Check that all required elements have values
+    const isValid = validateForm(formId);
+
+    if (!isValid) {
+      alert("Please enter all required information.");
+      return;
     }
+
+
+    
+    // Get data from form fields
+    const formData = formElements.reduce((inputVals, inputEl) => {
+      const field = inputEl.getAttribute("name");
+      let value = inputEl.value;
+      if (value != undefined) {
+        if (inputEl.type == "number" || field == "item_id" || field == "aid_kit_id") {
+          value = parseFloat(value);
+        }
+        inputVals[field] = value;
+      }
+      return inputVals;
+    }, {})
+    // Generate a request to the API
+    fetch("/aid_kit", {
+      method: "PUT",
+      headers: new Headers({
+        "content-type": "application/json"
+      }),
+      body: JSON.stringify(formData)
+    }
+    )
+    .then((response) => {
+      if (response.status == 401) { throw new Error("Invalid credentials"); }
+      if (response.status != 200) { throw new Error("Bad Server Response"); }
+      return response.json();
+    })
+    .then((json) => {
+      if (("error" in json) && json.error != undefined) {
+        throw new Error(json.error);
+      }
+
+      // Close the modal
+      document.getElementById("modalDismiss").click();
+
+      // Additional behaviour after success
+      console.log(json)
+      alert("Success!")
+
+      return json;
+    })
+    .catch((error) => {
+      alert(error);
+      return [];
+    });
+}
 
   /**
     Run on load
    */
   window.addEventListener("load", () => {
-    console.log("kit.js")
-  })
-})()
+  console.log("kit.js")
+})
+}) ()

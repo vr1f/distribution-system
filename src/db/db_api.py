@@ -302,6 +302,12 @@ def get_table_rows(
             rows = session.query(Categories).all()
             return rows
 
+    if table == "aid_kits":
+        with Session() as session:
+            print("aid")
+            rows = session.query(Aid_Kit).all()
+            return rows
+
     return []
 
 # =======================
