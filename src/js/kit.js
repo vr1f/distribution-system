@@ -85,8 +85,13 @@
           callback: this.showEditKitModal.bind(this)
         }
       }));
-      this.refreshKits();
-      this.refreshItems();
+
+      new Promise((resolve, reject) => {
+        this.refreshKits(resolve);
+      })
+      .then(() => {
+        this.refreshItems();
+      });
     }
 
     showKitModal(modalElements) {
@@ -154,7 +159,7 @@
       modalAction.addEventListener("click", onEditKit)
     }
 
-    refreshKits = async () => {
+    refreshKits = async (done) => {
       await fetch("/search", {
         method: "POST",
         headers: new Headers({
@@ -184,7 +189,7 @@
         });
     }
 
-    refreshItems = async () => {
+    refreshItems = async (done) => {
       await fetch("/search", {
         method: "POST",
         headers: new Headers({
@@ -235,7 +240,7 @@
   /**
    Validates a form of given `id` by checking all required elements have
   values.
- 
+
   @param {String} id - ID of the target element.
   @return {Boolean} `true` if valid.
   */
@@ -309,6 +314,8 @@
       if (("error" in json) && json.error != undefined) {
         throw new Error(json.error);
       }
+
+      state.aidKit.refreshKits();
 
       // Close the modal
       document.getElementById("modalDismiss").click();
