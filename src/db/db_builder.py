@@ -190,7 +190,7 @@ class Aid_Kit(Base):
     __tablename__ = 'aid_kit'
     aid_kit_id = Column(Integer, primary_key=True, autoincrement=True, onupdate="CASCADE")
     aidkit_name = Column(String)
-    description = Column(String)
+    aidkit_description = Column(String)
 
 # =======================
 # AID_KIT_ITEM

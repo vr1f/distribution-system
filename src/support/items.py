@@ -85,3 +85,22 @@ class Category(BaseModel):
     category_id: int = None
     category_name: str
     status: StatusEnum
+
+
+class AidKit(BaseModel):
+    """
+    Defines an aid kit
+    """
+    aid_kit_id: int = None
+    aidkit_name: str
+    aidkit_description: str
+
+
+class AidKitItem(BaseModel):
+    """
+    Defines an item belonging to a kit
+    """
+    id: int = None
+    aid_kit_id: int
+    item_id: int
+    quantity: int
