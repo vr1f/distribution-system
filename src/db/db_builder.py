@@ -176,6 +176,7 @@ class Item_DB(Base):
     expiry_date = Column(String)
     ingredients = Column(String)
     allergen_info = Column(String)
+    from_donor = Column(Integer, ForeignKey("aid_donors.donor_id", ondelete="CASCADE", onupdate="CASCADE"))
     # size = Column(Enum(Size))
     size = Column(String)
     category_id = Column(Integer, ForeignKey("category.category_id", ondelete="CASCADE", onupdate="CASCADE"))

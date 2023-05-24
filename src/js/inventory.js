@@ -45,6 +45,10 @@
       label: "Allergens", placeholder: "Enter any allergens (optional)",
       name: "allergen_info"
     },
+    {
+      label: "From Donor", placeholder: "Please select a donor who donated this item",
+      name: "from_donor", type: "select", options: []
+    },
   ];
 
   state.template.addAidCategoryFormElements = [
@@ -78,6 +82,7 @@
         allergen_info = "",
         size = "",
         category_id,
+        from_donor,
       } = params
       this.item_id = item_id;
       this.item_name = item_name;
@@ -94,6 +99,12 @@
       this.expiry_date = expiry_date;
       this.ingredients = ingredients;
       this.allergen_info = allergen_info;
+      this.from_donor = state.inventory.donors.reduce((value, donor) => {
+        if (from_donor == donor.donor_id) {
+          value = donor.first_name;
+        }
+        return value;
+      }, "")
     }
   }
 
@@ -103,6 +114,8 @@
 
       // object.keys = {category_id, category_name, status}
       this.categories = [];
+
+      this.donors = [];
 
       window.dispatchEvent(new CustomEvent("app.register.callback", {
         detail: {
@@ -118,13 +131,19 @@
         }
       }));
 
-      // Fetch categories and inventory records from the server
+      // Fetch categories, inventory records and donors from the server
       new Promise((resolve, reject) => {
         this.refreshCategories(resolve);
       })
       .then(() => {
-        this.refreshRecords();
+        return new Promise((resolve, reject) => {
+          this.refreshDonors(resolve);
+        })
       })
+      .then(() => {
+        this.refreshRecords();
+      }
+      )
     }
 
     addInventory(inventory) {
@@ -159,6 +178,14 @@
               return {
                 name: category.category_name,
                 value: category.category_id
+              }
+            });
+          }
+          if (element.name == "from_donor") {
+            element.options = this.donors.map((donor) => {
+              return {
+                name: donor.first_name,
+                value: donor.donor_id
               }
             });
           }
@@ -206,7 +233,7 @@
         headers: [
           "ID",
           "Name", "Brand", "Category", "Quantity", "Size", "Expiry Data",
-          "Main Ingredients", "Allergens"
+          "Main Ingredients", "Allergens", "From Donor"
         ],
         data: state.inventory.items
       }
@@ -219,7 +246,7 @@
     /**
       Refreshes inventory records from the server
      */
-    refreshRecords = async () => {
+    refreshRecords = async (done) => {
       await fetch("/search", {
         method: "POST",
         headers: new Headers({
@@ -249,7 +276,10 @@
         })
         .catch((error) => {
           alert(error);
-        });
+        })
+        .finally(() => {
+          done && done();
+        })
     }
 
     /**
@@ -285,6 +315,40 @@
           done && done();
         });
     }
+    /**
+      Refreshes inventory categories from the server
+      @param {function} done - Call back once the fetch promise is complete.
+     */
+    refreshDonors = async (done) => {
+      await fetch("/search", {
+        method: "POST",
+        headers: new Headers({
+          "content-type": "application/json"
+        }),
+        body: JSON.stringify({ context: "aid_donors" })
+      })
+        .then((response) => {
+          if (response.status == 401) { throw new Error("Invalid credentials"); }
+          if (response.status != 200) { throw new Error("Bad Server Response"); }
+          return response.json();
+        })
+        .then((json) => {
+          if (("error" in json) && json.error != undefined) {
+            throw new Error(json.error);
+          }
+          // Set donors to those returned from server
+          this.donors = json;
+
+          console.log("donors updated");
+        })
+        .catch((error) => {
+          alert(error);
+        })
+        .finally(() => {
+          done && done();
+        });
+    }
+
   }
 
   /** State of aidRecipients in the system */

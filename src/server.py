@@ -552,7 +552,8 @@ async def add_aid_item(
         ingredients = item.ingredients,
         allergen_info = item.allergen_info,
         size = item.size,
-        category_id = item.category_id
+        category_id = item.category_id,
+        from_donor = item.from_donor
     )
 
     response = add_aid_item(engine=engine, item=add_item)
