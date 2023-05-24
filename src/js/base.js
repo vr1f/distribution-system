@@ -1,5 +1,5 @@
 /**
-  Methods relating to the base html
+  Methods relating to the base
  */
 (() => {
   const overwriteCookie = () => {
@@ -15,11 +15,11 @@
   const logout = () => {
     overwriteCookie();
   }
+
   /**
   Run on load
   */
   window.addEventListener("load", () => {
     bindButtonActions();
   })
-
 })()

@@ -1,5 +1,5 @@
 /**
-  Methods relating to recipient functionality
+  Methods relating to donor functionality
  */
 "use strict";
 
@@ -100,7 +100,6 @@
 
   /**
   Representing info for a person, this should match `donors.py`
-  @todo Match this with donors.py once it is complete
  */
   class AidDonor extends Person {
     constructor(params) {
@@ -114,7 +113,6 @@
         org_name,
         org_abn
       } = params
-      // this.donor_id = donor_id;
       this.mail_address = mail_address;
       this.phone_number = phone_number;
       this.email_address = email_address;
@@ -123,7 +121,6 @@
       this.org_abn = org_abn;
     }
   }
-
 
   class AidDonorsState {
     constructor() {
@@ -143,16 +140,7 @@
       this.aidDonors.push(aidDonor);
     }
 
-    updateDonor(id, aidRecipient) {
-      alert("To implement");
-    }
-
-    deleteDonor(id) {
-      alert("To implement");
-    }
-
     showDonorModal(modalElements) {
-      // alert("To implement")
       const {
         modalHeading,
         modalBody,
@@ -231,7 +219,7 @@
   }
 
 
-  /** State of aidRecipients in the system */
+  /** State of aidDonors in the system */
   state.aidDonor = new AidDonorsState()
 
   /**
@@ -310,8 +298,6 @@
       return [];
     })
     .finally((json) => {
-      // TODO
-      // Additional behaviour if required
       return json
     });
   }
@@ -335,7 +321,7 @@
   }
 
   /**
-   Submits data to the API endpoint to create an aid recipient
+   Submits data to the API endpoint to create an aid donor
   */
   const onCreateDonor = () => {
 

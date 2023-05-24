@@ -1,8 +1,3 @@
-# SWEN90016 Project
-## Semester 1, 2023
-
-
-
 
 # VR1 Family Charity Distribution IT System
 
