@@ -48,6 +48,7 @@ class Item(BaseModel):
     allergen_info: str
     size: str
     category_id: int
+    from_donor: int = None
 
 class FoodItem(Item):
     """
