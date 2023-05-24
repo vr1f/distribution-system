@@ -234,7 +234,6 @@
   /**
    Validates a form of given `id` by checking all required elements have
   values.
-
   @param {String} id - ID of the target element.
   @return {Boolean} `true` if valid.
   */
@@ -280,12 +279,6 @@
         throw new Error(json.error);
       }
 
-      // TODO
-      // Additional behaviour after success
-      //console.log(json)
-      // alert("Success!")
-      // console.log(json);
-
       // Refresh the displayed table
       state.aidRecipient.refreshRecords();
 
@@ -299,8 +292,6 @@
       return [];
     })
     .finally((json) => {
-      // TODO
-      // Additional behaviour if required
       return json
     });
   }

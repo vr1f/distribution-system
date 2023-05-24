@@ -40,7 +40,7 @@ class AidDonor(Person):
 
 class DonorOrganisation(BaseModel):
     """
-    A data item representing an aid donor
+    A data item representing an aid donor organization
 
     Args:
         donor_org_id (int): organisation id for the database

@@ -27,7 +27,7 @@
     if (isValid(lockoutPeriod, loginAttempts)) {
       // Check if input is positive
       if (lockoutPeriod == "") {
-        // If left empty OR accidental gibberish string input, use previous existing value
+        // If left empty OR accidental string input, use previous existing value
         lockoutPeriod = document.getElementById("lockout-period").getAttribute("placeholder");
       }
       if (loginAttempts == "") {

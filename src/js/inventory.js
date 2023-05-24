@@ -1,5 +1,5 @@
 /**
-  Methods relating to recipient functionality
+  Methods relating to inventory functionality
  */
 "use strict";
 
@@ -68,7 +68,6 @@
 
   /**
     Representing info an inventory item, this should match `inventory.py`
-    @todo Match this with inventory.py once it is complete
    */
   class Inventory {
     constructor(params) {
@@ -150,16 +149,7 @@
       this.items.push(inventory);
     }
 
-    updateInventory(id, inventory) {
-      alert("To implement");
-    }
-
-    deleteInventory(id) {
-      alert("To implement");
-    }
-
     showInventoryModal(modalElements) {
-      // alert("To implement")
       const {
         modalHeading,
         modalBody,
@@ -189,7 +179,6 @@
               }
             });
           }
-
           return element;
         })
       )
@@ -203,7 +192,6 @@
     }
 
     showCategoryModal(modalElements) {
-      // alert("To implement")
       const {
         modalHeading,
         modalBody,
@@ -351,7 +339,7 @@
 
   }
 
-  /** State of aidRecipients in the system */
+  /** State of inventory in the system */
   state.inventory = new InventoryState()
 
   /**
@@ -363,7 +351,6 @@
     const formElements = [
         ...document
           .getElementById(id)
-          // .getElementsByTagName("input")
           .querySelectorAll("input,select") // Get both input and select
     ];
     return formElements;
@@ -372,7 +359,6 @@
   /**
    Validates a form of given `id` by checking all required elements have
   values.
-
   @param {String} id - ID of the target element.
   @return {Boolean} `true` if valid.
   */
@@ -465,8 +451,6 @@
       return [];
     })
     .finally((json) => {
-      // TODO
-      // Additional behaviour if required
       return json
     });
   }
@@ -523,8 +507,6 @@
       // Close the modal
       document.getElementById("modalDismiss").click();
 
-      // Additional behaviour after success
-      console.log(json)
       alert("Success!")
 
       return json;
