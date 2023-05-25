@@ -7,7 +7,7 @@
 # =========================================================================
 
 
-from sqlalchemy import Column, String, Integer, Enum, ForeignKey, Date, Float, DateTime
+from sqlalchemy import Column, String, Integer, Enum, ForeignKey, Date, Float, DateTime, LargeBinary
 from sqlalchemy.orm import declarative_base, relationship
 import enum
 
@@ -26,7 +26,8 @@ class Communication(str, enum.Enum):
     PHONE = 'phone'
     EMAIL = 'email'
 
-class Size(enum.Enum):
+#! Not used, causes problems for optional field
+class Size(str, enum.Enum):
     SMALL = 'S'
     MEDIUM = 'M'
     LARGE = 'L'
@@ -36,6 +37,12 @@ class Status(str, enum.Enum):
     LOW = 'low'
     MEDIUM = 'medium'
     HIGH = 'high'
+
+class Gender(str, enum.Enum):
+    FEMALE = 'female'
+    MALE = 'male'
+    UNISEX = 'unisex'
+    OTHER = 'other'
 
 # =======================
 # USERS
@@ -96,6 +103,9 @@ class Person(Base):
     id_no = Column(String)
     id_expiry = Column(String)
     aid_recipient_db = relationship('Aid_Recipient_DB', backref='person', passive_deletes=True)
+    document_id = Column(Integer, ForeignKey("sensitive_img.document_id", ondelete="CASCADE", onupdate="CASCADE"))
+
+
 
 # =======================
 # AID_RECIPIENT_DB
@@ -106,6 +116,7 @@ class Aid_Recipient_DB(Person):
     __tablename__ = 'aid_recipients'
     person_id = Column(Integer, ForeignKey("person.person_id", ondelete="CASCADE", onupdate="CASCADE"), primary_key=True)
     address = Column(String)
+    n_family = Column(Integer)
     common_law_partner = Column(String)
     dependents = Column(String)
     __mapper_args__ = {'inherit_condition': person_id == Person.person_id}
@@ -123,8 +134,21 @@ class Aid_Donor(Person):
     phone_number = Column(String)
     email_address = Column(String)
     preferred_comm = Column(Enum(Communication))
+    org_name = Column(String)
+    org_abn = Column(String)
     __mapper_args__ = {'inherit_condition': donor_id == Person.person_id}
 
+# =======================
+# Sensitive image table
+# Store sensitive img files for both aid donor and aid recipient
+# PK is a person_id from the Person table
+# =======================
+class Sensitive_Img(Base):
+    __tablename__ = 'sensitive_img'
+    document_id = Column(Integer, primary_key=True)
+    img_1 = Column(LargeBinary, default=None)
+    img_2 = Column(LargeBinary, default=None)
+    img_3 = Column(LargeBinary, default=None)
 
 
 # =======================
@@ -143,39 +167,20 @@ class Categories(Base):
 # Base class to represent items
 # Each aid item has a name, quantity and category
 # =======================
-class Item(Base):
+class Item_DB(Base):
     __tablename__ = 'item'
     item_id = Column(Integer, primary_key=True, autoincrement=True, onupdate="CASCADE")
     item_name = Column(String)
     item_quantity = Column(Integer)
-    category_id = Column(Integer, ForeignKey("category.category_id", ondelete="CASCADE", onupdate="CASCADE"))
-    __mapper_args__ = {'inherit_condition': category_id == Categories.category_id}
-
-# =======================
-# FOOD_ITEM
-# Inherits Item class. Further includes food details
-# PK is item_id from item table
-# =======================
-class Food_Item(Item):
-    __tablename__ = 'food_item'
-    item_id = Column(Integer, ForeignKey("item.item_id", ondelete="CASCADE", onupdate="CASCADE"), primary_key=True)
-    expiry_date = Column(Date)
+    item_brand = Column(String)
+    expiry_date = Column(String)
     ingredients = Column(String)
     allergen_info = Column(String)
-    brand = Column(String)
-    __mapper_args__ = {'inherit_condition': item_id == Item.item_id}
-
-# =======================
-# CLOTHING_ITEM
-# Inherits Item class. Further clothing details
-# PK is item_id from item table
-# =======================
-class Clothing_Item(Item):
-    __tablename__ = 'clothing_item'
-    item_id = Column(Integer, ForeignKey("item.item_id", ondelete="CASCADE", onupdate="CASCADE"), primary_key=True)
-    size = Column(Enum(Size))
-    brand = Column(String)
-    __mapper_args__ = {'inherit_condition': item_id == Item.item_id}
+    from_donor = Column(Integer, ForeignKey("aid_donors.donor_id", ondelete="CASCADE", onupdate="CASCADE"))
+    # size = Column(Enum(Size))
+    size = Column(String)
+    category_id = Column(Integer, ForeignKey("category.category_id", ondelete="CASCADE", onupdate="CASCADE"))
+    __mapper_args__ = {'inherit_condition': category_id == Categories.category_id}
 
 # =======================
 # AID_KIT
@@ -186,7 +191,7 @@ class Aid_Kit(Base):
     __tablename__ = 'aid_kit'
     aid_kit_id = Column(Integer, primary_key=True, autoincrement=True, onupdate="CASCADE")
     aidkit_name = Column(String)
-    description = Column(String)
+    aidkit_description = Column(String)
 
 # =======================
 # AID_KIT_ITEM

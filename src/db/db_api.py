@@ -8,7 +8,9 @@
 
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
-from db.db_builder import User, Privileges, Login_Attempts, Lockout_Period, Aid_Recipient_DB, Person, Categories, Lockout_List, Failed_Login, Aid_Donor
+from db.db_builder import User, Privileges, Login_Attempts, Lockout_Period, \
+    Aid_Recipient_DB, Person, Categories, Lockout_List, Failed_Login, \
+    Aid_Donor, Sensitive_Img, Item_DB, Aid_Kit, Aid_Kit_Item
 from support.responses import DatabaseActionResponse
 from sqlalchemy import update
 from datetime import datetime, timedelta
@@ -271,6 +273,64 @@ def check_user_is_admin(
             return False
 
 # =======================
+# RETRIEVES ALL DATA WITHIN A TABLE
+# Returns all data rows within the target table
+# =======================
+def get_table_rows(
+        engine: Engine,
+        table: str = ""
+    ):
+    Session = sessionmaker(bind=engine)
+
+    if table == "aid_recipients":
+        with Session() as session:
+            rows = session.query(Aid_Recipient_DB).all()
+            return rows
+
+    if table == "aid_donors":
+        with Session() as session:
+            rows = session.query(Aid_Donor).all()
+            return rows
+
+    if table == "item":
+        with Session() as session:
+            rows = session.query(Item_DB).all()
+            return rows
+
+    if table == "category":
+        with Session() as session:
+            rows = session.query(Categories).all()
+            return rows
+
+    if table == "aid_kits":
+        with Session() as session:
+            print("aid")
+            rows = session.query(Aid_Kit).all()
+            return rows
+
+    return []
+
+# =======================
+# ADD SENSITIVE ID DOCUMENT
+# Creates new record for storing ID documents
+# =======================
+def add_id_img_record(
+        engine: Engine,
+        new_images: Sensitive_Img
+    ):
+    response = DatabaseActionResponse()
+    try:
+        Session = sessionmaker(bind=engine)
+        with Session() as session:
+            session.add(new_images)
+            session.commit()
+            response.id = new_images.document_id
+    except Exception as e:
+        response.error = e
+
+    return response
+
+# =======================
 # ADD AID RECIPIENT
 # Creates new aid recipient in the database
 # =======================
@@ -363,6 +423,67 @@ def add_aid_category(
             session.add(category)
             session.commit()
             response.id = category.category_id
+    except Exception as e:
+        response.error = e
+
+    return response
+
+# =======================
+# ADD AID ITEM
+# Adds an aid category to the database
+# =======================
+def add_aid_item(
+        engine: Engine,
+        item: Item_DB
+    ):
+    response = DatabaseActionResponse()
+
+    try:
+        Session = sessionmaker(bind=engine)
+        with Session() as session:
+            session.add(item)
+            session.commit()
+            response.id = item.item_id
+    except Exception as e:
+        response.error = e
+
+    return response
+
+# =======================
+# ADD AID KIT
+# =======================
+def add_aid_kit(
+    engine: Engine,
+    kit: Aid_Kit
+):
+    response = DatabaseActionResponse()
+
+    try:
+        Session = sessionmaker(bind=engine)
+        with Session() as session:
+            session.add(kit)
+            session.commit()
+            response.id = kit.aid_kit_id
+    except Exception as e:
+        response.error = e
+
+    return response
+
+# =======================
+# ADD AID KIT ITEM
+# =======================
+def add_aid_kit_item(
+    engine: Engine,
+    kit_item: Aid_Kit_Item
+):
+    response = DatabaseActionResponse()
+
+    try:
+        Session = sessionmaker(bind=engine)
+        with Session() as session:
+            session.add(kit_item)
+            session.commit()
+            response.id = kit_item.id
     except Exception as e:
         response.error = e
 

@@ -1,5 +1,5 @@
 /**
-  Methods relating to recipient functionality
+  Methods relating to inventory functionality
  */
 "use strict";
 
@@ -15,19 +15,19 @@
   state.template.addInventoryFormElements = [
     {
       label: "Name", placeholder: "Name",
-      name:"name", required: true
+      name:"item_name", required: true
     },
     {
       label: "Brand", placeholder: "Enter Brand (optional)",
-      name: "brand"
+      name: "item_brand"
     },
     {
-      label: "TODO Category", placeholder: "TODO, SELECT CATEGORY",
-      name: "category", required: true
+      type: "select", name:"category_id", required: true,
+      options: [], label: "Category"
     },
     {
       label: "Quantity", placeholder: "Enter Quantity",
-      name: "quantity", type: "number", required: true
+      name: "item_quantity", type: "number", required: true
     },
     {
       label: "Size", placeholder: "Enter 1, 2, 3 or XL, XXL (optional)",
@@ -39,11 +39,15 @@
     },
     {
       label: "Main Ingredients", placeholder: "Enter main ingredients (optional)",
-      name: "main_ingredients"
+      name: "ingredients"
     },
     {
       label: "Allergens", placeholder: "Enter any allergens (optional)",
-      name: "allergens"
+      name: "allergen_info"
+    },
+    {
+      label: "From Donor", placeholder: "Please select a donor who donated this item",
+      name: "from_donor", type: "select", options: []
     },
   ];
 
@@ -53,7 +57,7 @@
       name:"category_name", required: true
     },
     {
-      type: "select", name:"status", required: true,
+      type: "select", name:"status", required: true, label: "Status",
       options: [
         {name: "Status Low", value: "low"},
         {name: "Status Medium", value: "medium"},
@@ -64,36 +68,53 @@
 
   /**
     Representing info an inventory item, this should match `inventory.py`
-    @todo Match this with inventory.py once it is complete
    */
   class Inventory {
     constructor(params) {
       const {
-        id = undefined,
-        name,
-        brand = "",
-        category, //TODO
-        quantity,
-        size = "",
+        item_id = undefined,
+        item_name,
+        item_quantity,
+        item_brand = "",
         expiry_date = "",
-        main_ingredients = "",
-        allergens = "",
+        ingredients = "",
+        allergen_info = "",
+        size = "",
+        category_id,
+        from_donor,
       } = params
-      this.id = id;
-      this.name = name;
-      this.brand = brand;
-      this.category = category;
-      this.quantity = quantity;
+      this.item_id = item_id;
+      this.item_name = item_name;
+      this.item_brand = item_brand;
+      this.category = state.inventory.categories.reduce((value, category) => {
+        // Dynamically map category_id to category_name
+        if (category_id == category.category_id) {
+          value = category.category_name;
+        }
+        return value;
+      }, "")
+      this.item_quantity = item_quantity;
       this.size = size;
       this.expiry_date = expiry_date;
-      this.main_ingredients = main_ingredients;
-      this.allergens = allergens;
+      this.ingredients = ingredients;
+      this.allergen_info = allergen_info;
+      this.from_donor = state.inventory.donors.reduce((value, donor) => {
+        if (from_donor == donor.donor_id) {
+          value = donor.first_name;
+        }
+        return value;
+      }, "")
     }
   }
 
   class InventoryState {
     constructor() {
-      this.items = []
+      this.items = [];
+
+      // object.keys = {category_id, category_name, status}
+      this.categories = [];
+
+      this.donors = [];
 
       window.dispatchEvent(new CustomEvent("app.register.callback", {
         detail: {
@@ -108,22 +129,27 @@
           callback: this.showCategoryModal.bind(this)
         }
       }));
+
+      // Fetch categories, inventory records and donors from the server
+      new Promise((resolve, reject) => {
+        this.refreshCategories(resolve);
+      })
+      .then(() => {
+        return new Promise((resolve, reject) => {
+          this.refreshDonors(resolve);
+        })
+      })
+      .then(() => {
+        this.refreshRecords();
+      }
+      )
     }
 
     addInventory(inventory) {
       this.items.push(inventory);
     }
 
-    updateInventory(id, inventory) {
-      alert("To implement");
-    }
-
-    deleteInventory(id) {
-      alert("To implement");
-    }
-
     showInventoryModal(modalElements) {
-      // alert("To implement")
       const {
         modalHeading,
         modalBody,
@@ -135,7 +161,26 @@
 
       // Form elements in the body
       const inputForm = window.UiFactory.createModalForm(
-        state.template.addInventoryFormElements
+        state.template.addInventoryFormElements.map((element) => {
+          // Map categories to selector
+          if (element.name == "category_id") {
+            element.options = this.categories.map((category) => {
+              return {
+                name: category.category_name,
+                value: category.category_id
+              }
+            });
+          }
+          if (element.name == "from_donor") {
+            element.options = this.donors.map((donor) => {
+              return {
+                name: donor.first_name,
+                value: donor.donor_id
+              }
+            });
+          }
+          return element;
+        })
       )
       modalBody.innerHTML = ""
       modalBody.appendChild(inputForm)
@@ -147,7 +192,6 @@
     }
 
     showCategoryModal(modalElements) {
-      // alert("To implement")
       const {
         modalHeading,
         modalBody,
@@ -168,32 +212,135 @@
       modalAction.innerHTML = "Submit";
       modalAction.addEventListener("click", onCreateCategory)
     }
-  }
 
-  /** State of aidRecipients in the system */
-  state.inventory = new InventoryState()
+    /**
+      Renders the state into the page
+     */
+    renderStateTable = () => {
+      const tableData = {
+        headers: [
+          "ID",
+          "Name", "Brand", "Category", "Quantity", "Size", "Expiry Data",
+          "Main Ingredients", "Allergens", "From Donor"
+        ],
+        data: state.inventory.items
+      }
+      const tableNode = UiFactory && UiFactory.createTable(tableData)
+      const el = document.getElementById("dataTarget")
+      el.innerHTML = ""
+      el.appendChild(tableNode)
+    }
 
-  /**
-    Adds event listeners to various DOM elements
-   */
-  const addEventListeners = () => {
-    /** @debug */
-    document
-      .getElementById("testFactory")
-      .addEventListener("click", () => {
-        const testData = {
-          headers: [
-              "ID", "Name", "Brand", "Category", "Quantity", "Size",
-              "Expiry Date", "Main Ingredients", "Allergens"
-            ], data: state.inventory.items
-        }
-        const tableNode = UiFactory && UiFactory.createTable(testData)
-        const el = document.getElementById("factoryTarget")
-        el.innerHTML = ""
-        el.appendChild(tableNode)
+    /**
+      Refreshes inventory records from the server
+     */
+    refreshRecords = async (done) => {
+      await fetch("/search", {
+        method: "POST",
+        headers: new Headers({
+          "content-type": "application/json"
+        }),
+        body: JSON.stringify({ context: "item" })
       })
-    ;
+        .then((response) => {
+          if (response.status == 401) { throw new Error("Invalid credentials"); }
+          if (response.status != 200) { throw new Error("Bad Server Response"); }
+          return response.json();
+        })
+        .then((json) => {
+          if (("error" in json) && json.error != undefined) {
+            throw new Error(json.error);
+          }
+          // Clear state
+          this.items = [];
+
+          // Add
+          json.map((row) => {
+            this.addInventory(new Inventory(row));
+          });
+
+          // Render the table
+          this.renderStateTable();
+        })
+        .catch((error) => {
+          alert(error);
+        })
+        .finally(() => {
+          done && done();
+        })
+    }
+
+    /**
+      Refreshes inventory categories from the server
+      @param {function} done - Call back once the fetch promise is complete.
+     */
+    refreshCategories = async (done) => {
+      await fetch("/search", {
+        method: "POST",
+        headers: new Headers({
+          "content-type": "application/json"
+        }),
+        body: JSON.stringify({ context: "category" })
+      })
+        .then((response) => {
+          if (response.status == 401) { throw new Error("Invalid credentials"); }
+          if (response.status != 200) { throw new Error("Bad Server Response"); }
+          return response.json();
+        })
+        .then((json) => {
+          if (("error" in json) && json.error != undefined) {
+            throw new Error(json.error);
+          }
+          // Set categories to those returned from server
+          this.categories = json;
+
+          console.log("categories updated");
+        })
+        .catch((error) => {
+          alert(error);
+        })
+        .finally(() => {
+          done && done();
+        });
+    }
+    /**
+      Refreshes inventory categories from the server
+      @param {function} done - Call back once the fetch promise is complete.
+     */
+    refreshDonors = async (done) => {
+      await fetch("/search", {
+        method: "POST",
+        headers: new Headers({
+          "content-type": "application/json"
+        }),
+        body: JSON.stringify({ context: "aid_donors" })
+      })
+        .then((response) => {
+          if (response.status == 401) { throw new Error("Invalid credentials"); }
+          if (response.status != 200) { throw new Error("Bad Server Response"); }
+          return response.json();
+        })
+        .then((json) => {
+          if (("error" in json) && json.error != undefined) {
+            throw new Error(json.error);
+          }
+          // Set donors to those returned from server
+          this.donors = json;
+
+          console.log("donors updated");
+        })
+        .catch((error) => {
+          alert(error);
+        })
+        .finally(() => {
+          done && done();
+        });
+    }
+
   }
+
+  /** State of inventory in the system */
+  state.inventory = new InventoryState()
 
   /**
     Retrieves all child `input` elements of a given element by its `id`
@@ -204,7 +351,6 @@
     const formElements = [
         ...document
           .getElementById(id)
-          // .getElementsByTagName("input")
           .querySelectorAll("input,select") // Get both input and select
     ];
     return formElements;
@@ -213,7 +359,6 @@
   /**
    Validates a form of given `id` by checking all required elements have
   values.
-
   @param {String} id - ID of the target element.
   @return {Boolean} `true` if valid.
   */
@@ -262,7 +407,7 @@
       const field = inputEl.getAttribute("name");
       let value = inputEl.value;
       if (value != undefined) {
-        if (inputEl.type == "number") {
+        if (inputEl.type == "number" || field == "category_id") {
           value = parseFloat(value);
         }
         inputVals[field] = value;
@@ -289,10 +434,15 @@
         throw new Error(json.error);
       }
 
-      // TODO
+      // Close the modal
+      document.getElementById("modalDismiss").click();
+
       // Additional behaviour after success
       console.log(json)
       alert("Success!")
+
+      // Refresh the inventory list
+      state.inventory.refreshRecords();
 
       return json;
     })
@@ -301,14 +451,12 @@
       return [];
     })
     .finally((json) => {
-      // TODO
-      // Additional behaviour if required
       return json
     });
   }
 
   /**
-   Submits data to the API endpoint to create an aid recipient
+   Submits data to the API endpoint to create category
   */
   const onCreateCategory = () => {
     const formId = "modalForm";
@@ -356,9 +504,9 @@
         throw new Error(json.error);
       }
 
-      // TODO
-      // Additional behaviour after success
-      console.log(json)
+      // Close the modal
+      document.getElementById("modalDismiss").click();
+
       alert("Success!")
 
       return json;
@@ -368,33 +516,8 @@
       return [];
     })
     .finally((json) => {
-      // TODO
-      // Additional behaviour if required
-      return json
+      // Update the category list from server
+      state.inventory.refreshCategories();
     });
   }
-
-  /**
-    Run on load
-   */
-  window.addEventListener("load", () => {
-
-    addEventListeners();
-
-    /**
-      @debug Dummy state
-     */
-    state.inventory.addInventory(
-      new Inventory({
-        name: "Spam", category: "Canned Food", quantity: 5
-      })
-    )
-    state.inventory.addInventory(
-      new Inventory({
-        name: "Mee Goreng", category: "Instant Noodles", quantity: 8
-      })
-    )
-
-    console.log(state)
-  })
 })()

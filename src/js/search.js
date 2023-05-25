@@ -1,5 +1,3 @@
-
-
 /**
   Methods relating to search function
  */

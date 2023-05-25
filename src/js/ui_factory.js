@@ -54,9 +54,20 @@
         return;
       }
 
-      Object.values(row).map((content) => {
+      Object.keys(row).map((header) => {
         const cell = td.cloneNode();
-        cell.innerHTML = content;
+        const content = row[header];
+
+        switch(header) {
+          case "document_id":
+            cell.innerHTML = content && "&#128193;" || content;
+            break;
+
+          default:
+            cell.innerHTML = content;
+            break;
+        }
+
         tableRow.appendChild(cell);
       })
 
@@ -93,6 +104,12 @@
       input.setAttribute(key, value)
     });
 
+    // If the input is to be hidden, return the input element without
+    // wrappers
+    if (input.hasAttribute("hidden")) {
+      return input;
+    }
+
     // Build the label element
     label.innerHTML = labelText;
 
@@ -115,12 +132,14 @@
    */
   window.UiFactory.createSelectBox = (inputEl) => {
     const{
+      label:labelText,
       options,
       ...attrs
     } = inputEl;
 
     // Artefacts
     const wrapper = document.createElement("div");
+    const label = document.createElement("label");
     const select = document.createElement("select");
     const option = document.createElement("option");
 
@@ -139,8 +158,12 @@
       select.appendChild(optionEl)
     });
 
+    // Build the label element
+    label.innerHTML = labelText;
+
     // Build the wrapper
     wrapper.classList.add("form-group", "pb-3");
+    labelText && wrapper.appendChild(label);
     wrapper.appendChild(select);
 
     return wrapper;

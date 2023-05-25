@@ -29,6 +29,10 @@ class Person(PersonID):
         first_name (str): Person's first name.
         last_name (str): Person's last name. Defaults to "NO_LAST_NAME"
         age (float): Age in years.
+        nationality: Person's nationality
+        id_no: Personal ID
+        id_expiry: Expiry date of personal ID
+        document_id: FK link to sensitive_img table which stores up to three img files
     """
     first_name: str
     last_name: str = NO_LAST_NAME
@@ -36,7 +40,7 @@ class Person(PersonID):
     nationality: str = None
     id_no: str = None
     id_expiry: str = None
-
+    document_id: str = None # Can FK be None?
 
 class AidRecipient(Person):
     """
@@ -50,5 +54,6 @@ class AidRecipient(Person):
         dependents (List of Person): Recipient's dependents (eg. kids).
     """
     address: str = NO_KNOWN_ADDRESS
-    common_law_partner: Person = None
-    dependents: List[Person] = None
+    n_family: int = None
+    common_law_partner: str = None
+    dependents: str = None

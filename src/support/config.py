@@ -23,7 +23,6 @@ class Config:
 
 # AWS config should also work for local Docker testing:
 class AWSConfig(Config):
-    #TODO: prevent hard code sensitive data
     def __init__(self):
 
         self.FRONTEND_HOST = "0.0.0.0" 

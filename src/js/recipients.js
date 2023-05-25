@@ -30,30 +30,37 @@
       name: "address"
     },
     {
+      label: "Family Size", placeholder: "Number in family (optional)",
+      name: "n_family", type: "number"
+    },
+    {
       label: "Partner", placeholder: "Enter partner details (optional)",
-      name: "partner"
+      name: "common_law_partner"
     },
     {
       label: "Dependents", placeholder: "Enter dependents details (optional)",
-      name: "partner"
-    }, 
-    {
-      label: "Nationality", placeholder: "Enter nationality",
-      name: "nationality" 
+      name: "dependents"
     },
     {
-      label: "ID No.", placeholder: "Enter ID no.",
-      name: "id_no" 
+      label: "Nationality", placeholder: "Enter nationality (optional)",
+      name: "nationality"
     },
     {
-      label: "ID Expiry", placeholder: "Enter ID expiry date",
+      label: "ID No.", placeholder: "Enter ID no. (optional)",
+      name: "id_no"
+    },
+    {
+      label: "ID Expiry", placeholder: "Enter ID expiry date (optional)",
       name: "id_expiry", type: "date"
     },
     {
-      label: "Upload Documents", id: "file",
-      name: "file", type: "file", multiple:"multiple"
+      name: "document_id", id: "document_id", type: "number", hidden: true
+    },
+    {
+      label: "Upload Documents", id: "id_images",
+      type: "file", multiple:"multiple"
     }
-    
+
   ];
 
   /**
@@ -62,21 +69,23 @@
   class Person {
     constructor(params) {
       const {
-        id = undefined,
+        person_id = undefined,
         first_name,
         last_name = "NO_LAST_NAME",
         age,
         nationality = undefined,
         id_no = undefined,
-        id_expiry = undefined
+        id_expiry = undefined,
+        document_id = undefined,
       } = params
-      this.id = id;
+      this.person_id = person_id;
       this.first_name = first_name;
       this.last_name = last_name;
       this.age = age;
       this.nationality = nationality;
       this.id_no = id_no;
       this.id_expiry = id_expiry;
+      this.document_id = document_id;
     }
   }
 
@@ -87,11 +96,13 @@
     constructor(params) {
       super(params)
       const {
-        address = undefined, //"NO_KNOWN_ADDRESS",
-        common_law_partner = undefined,
-        dependents = undefined,
+        address = "NO_KNOWN_ADDRESS",
+        n_family = 1,
+        common_law_partner = "",
+        dependents = "",
       } = params
       this.address = address;
+      this.n_family = n_family;
       this.common_law_partner = common_law_partner;
       this.dependents = dependents;
     }
@@ -107,6 +118,8 @@
           callback: this.showRecipientModal.bind(this)
         }
       }));
+
+      this.refreshRecords()
     }
 
     addRecipient(aidRecipient) {
@@ -144,33 +157,65 @@
       modalAction.addEventListener("click", onCreateRecipient)
 
     }
+
+    /**
+      Renders the state into the page
+     */
+    renderStateTable = () => {
+      const tableData = {
+        headers: [
+          "ID",
+          "First Name", "Last Name", "Age",
+          "Nationality", "ID Number", "ID Expiry", "ID Doc",
+          "Address", "Family Size", "Partner", "Dependents"
+        ],
+        data: state.aidRecipient.aidRecipients
+      }
+      const tableNode = UiFactory && UiFactory.createTable(tableData)
+      const el = document.getElementById("dataTarget")
+      el.innerHTML = ""
+      el.appendChild(tableNode)
+    }
+
+    /**
+      Refreshes records from the server database
+     */
+    refreshRecords = async () => {
+      await fetch ("/search", {
+        method: "POST",
+        headers: new Headers({
+          "content-type": "application/json"
+        }),
+        body: JSON.stringify({context: "aid_recipients"})
+      })
+      .then((response) => {
+        if (response.status == 401) { throw new Error("Invalid credentials"); }
+        if (response.status != 200) { throw new Error("Bad Server Response"); }
+        return response.json();
+      })
+      .then((json) => {
+        if (("error" in json) && json.error != undefined) {
+          throw new Error(json.error);
+        }
+        // Clear state
+        this.aidRecipients = [];
+
+        // Add
+        json.map((row) => {
+          this.addRecipient(new AidRecipient(row));
+        });
+
+        // Render the table
+        this.renderStateTable();
+      })
+      .catch((error) => {
+        alert(error);
+      })
+    }
   }
 
   /** State of aidRecipients in the system */
   state.aidRecipient = new AidRecipientsState()
-
-  /**
-    Adds event listeners to various DOM elements
-   */
-  const addEventListeners = () => {
-    /** @debug */
-    document
-      .getElementById("testFactory")
-      .addEventListener("click", () => {
-        const testData = {
-          headers: ["First Name", "Last Name", "Age"], data: [
-            {a: "Paul", b:"Z", c:24},
-            {a: "Tom", b:"C", c:31},
-            {a: "Paul", b:"T", c:19},
-          ]
-        }
-        const tableNode = UiFactory && UiFactory.createTable(testData)
-        const el = document.getElementById("factoryTarget")
-        el.innerHTML = ""
-        el.appendChild(tableNode)
-      })
-    ;
-  }
 
   /**
     Retrieves all child `input` elements of a given element by its `id`
@@ -189,7 +234,6 @@
   /**
    Validates a form of given `id` by checking all required elements have
   values.
-
   @param {String} id - ID of the target element.
   @return {Boolean} `true` if valid.
   */
@@ -218,7 +262,7 @@
 
   // Sends aid recipient form data to API endpoint
   const fetchForm = async (formData) => {
-     await fetch("/aid_recipient", {
+    return await fetch("/aid_recipient", {
       method: "POST",
       headers: new Headers({
         "content-type": "application/json"
@@ -235,11 +279,12 @@
         throw new Error(json.error);
       }
 
-      // TODO
-      // Additional behaviour after success
-      //console.log(json)
-      alert("Success!")
-      console.log(json);
+      // Refresh the displayed table
+      state.aidRecipient.refreshRecords();
+
+      // Close the modal
+      document.getElementById("modalDismiss").click();
+
       return json;
     })
     .catch((error) => {
@@ -247,79 +292,105 @@
       return [];
     })
     .finally((json) => {
-      // TODO
-      // Additional behaviour if required
       return json
-    })
+    });
   }
 
 
-  // Uploads file to API endpoint and adds the file ID (returned from API) to the form data
-  // TO DO: Test again after backend completed
-  // TO DO: Add file_id field to Person
-  const fetchFile = async (files, formData) => {
-    await fetch("/aid_recipient", {
+  // Uploads file to API endpoint
+  const uploadFiles = async (files) => {
+    return await fetch("/id_img", {
       method: "POST",
       body: files
     })
     .then((response) => {
-      // TO DO: Change status no. accordingly when backend is completed
-      if (response.status != 201) {
+      if (!response.ok) {
         throw new Error("Unable to upload file!");
       }
       return response.json();
     })
-    .then((json) => {
-      // gets the file ID from API and adds to form data
-      formData["file_id"] =  json.file_id;
-      return json;
-    })
     .catch((error) => {
       alert(error.message);
-    })
+      return {id: undefined}
+    });
   }
 
   /**
    Submits data to the API endpoint to create an aid recipient
   */
   const onCreateRecipient = () => {
-    const formId = "modalForm";
 
-    // Get form elements as an array
-    const formElements = getFormInputsById(formId);
+    // Use a promise to first upload files if any
+    // then retrieve the file id to set as the "document_id" field
+    new Promise((resolve, reject) => {
+      // Check the file selector
+      const fileSelector = document.getElementById("id_images");
+      const docIdField = document.getElementById("document_id");
 
-    // Check that all required elements have values
-    const isValid = validateForm(formId);
+      // Resolve immediately if docIdField has already been filled
+      // or if there are no files in the fileSelector
+      if (docIdField.value != "" || fileSelector.value == "") {
+        return resolve();
+      }
 
-    if (!isValid) {
-      alert("Please enter all required information.");
-      return;
-    }
+      // Generate FormData to upload the files to the server
+      const files = new FormData();
+      for (const file of fileSelector.files) {
+        files.append("files", file);
+      }
 
-    // Get data from form fields
-    var formData = formElements.reduce((inputVals, inputEl) => {
-      const field = inputEl.getAttribute("name");
-      let value = inputEl.value;
-      if (value != undefined) {
-        if (inputEl.type == "number") {
-          value = parseFloat(value);
+      // Upload the files by querying the endpoint
+      uploadFiles(files)
+      .then((json) => {
+        // Get the document_id from the endpoint response
+        const { id: document_id } = json;
+
+        // Reject if document_id is undefined
+        (!document_id) && reject("Could not upload files.");
+
+        // Set the document_id
+        document.getElementById("document_id").value = document_id;
+
+        resolve();
+      });
+    })
+    .then(() => {
+      const formId = "modalForm";
+
+      // Get form elements as an array
+      const formElements = getFormInputsById(formId);
+
+      // Check that all required elements have values
+      const isValid = validateForm(formId);
+
+      if (!isValid) {
+        alert("Please enter all required information.");
+        return;
+      }
+
+      // Get data from form fields
+      const formData = formElements.reduce((inputVals, inputEl) => {
+        const field = inputEl.getAttribute("name");
+        let { value } = inputEl;
+
+        if (field && value != undefined) {
+          if (inputEl.type == "number") {
+            value = parseFloat(value);
+          }
+          inputVals[field] = value;
         }
-        inputVals[field] = value;
-      }
-      return inputVals;
-    }, {})
+        return inputVals;
+      }, {})
 
-    // Check if user uploaded any files
-    if (document.getElementById("file").value != "") {
-      // If files present
-      var files = new FormData();
-      for (const file of document.getElementById("file").files) {
-        files.append("file", file);
-      }
-      // Upload file to DB and add linking file ID key to recipient form
-      fetchFile(files, formData);
-    }
-    fetchForm(formData);
+      // Add data to server database
+      return fetchForm(formData);
+    })
+    .catch((error) => {
+      alert("Failed to add new recipient.");
+    });
+
+    return;
+
   }
 
   /**
@@ -327,18 +398,5 @@
    */
   window.addEventListener("load", () => {
     console.log("recipients.js")
-    addEventListeners();
-
-    /**
-      @debug Dummy state
-     */
-    // state.aidRecipient.addRecipient(
-    //   new AidRecipient({
-    //     first_name: "foo", last_name: "bar", age: 25, address: "101 Rescue Lane",
-    //     common_law_partner: "rick", dependents: "morty"
-    //   })
-    // )
-
-    console.log(state)
   })
 })()

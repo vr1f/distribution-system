@@ -9,7 +9,8 @@
 
 
 # Imports
-from fastapi import FastAPI, Request, HTTPException, status, Response
+from fastapi import FastAPI, Request, HTTPException, status, Response, \
+    File
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.templating import Jinja2Templates
@@ -17,11 +18,11 @@ from starlette.templating import _TemplateResponse
 import uvicorn
 from sqlalchemy.exc import OperationalError, IntegrityError
 from support.recipients import PersonID, AidRecipient
-from support.items import Category
+from support.items import Category, Item, AidKit, AidKitItem
 from support.donor import AidDonor
 from support.responses import DatabaseActionResponse
 from support.security import token_validator, check_access, check_admin
-
+from typing import Annotated
 
 # Initialise log:
 import support.logger as logger
@@ -166,6 +167,34 @@ def home(
         )
 
     return html
+
+# =====================
+#  ENDPOINT: Returns DB Table
+# =====================
+@app.post("/search")
+def home(
+        request: Request,
+        searchParams: dict = {
+            "context": ""
+        }
+    ) -> _TemplateResponse:
+
+    log.info("'/search' called from: " + str(request.client))
+    #TODO token_validator(secret_key, request, log)
+
+    # return the contents of the relevant table.
+    from db.db_api import get_table_rows
+
+    context = searchParams["context"]
+
+    if context in [
+        "aid_recipients", "aid_donors", "item", "category", "aid_kits"
+    ]:
+        rows = get_table_rows(engine=engine, table=context)
+        return rows
+
+    return {}
+
 # =====================
 #  PAGE: View Aid recipients
 # =====================
@@ -291,6 +320,36 @@ async def login_for_access_token(
 
 
 # =====================
+# API ENDPOINT: Upload sensitive images of aid recipients or donors
+# =====================
+@app.post("/id_img")
+async def add_id_images(
+        request: Request,
+        files: Annotated[list[bytes], File()]
+    ) -> dict:
+    from db.db_builder import Sensitive_Img
+    from db.db_api import add_id_img_record
+
+    # Create DB assignments using the first three files
+    new_images = Sensitive_Img(
+        img_1=files[0] if len(files) > 0 else None,
+        img_2=files[1] if len(files) > 1 else None,
+        img_3=files[2] if len(files) > 2 else None
+    )
+
+    # Commit to DB and get the response
+    response = add_id_img_record(engine=engine, new_images=new_images)
+
+    # Write to log
+    if response.error == None:
+        log.info("New ID documents added")
+    else:
+        log.info("Unable to add ID documents")
+
+    return response
+
+
+# =====================
 # API ENDPOINT: Create aid recipients in the system
 # Check JWT access token
 # Take request body as JSON
@@ -312,11 +371,13 @@ async def add_aid_recipient(
             last_name=recipient.last_name,
             age=recipient.age,
             address=recipient.address,
+            n_family=recipient.n_family,
             common_law_partner=recipient.common_law_partner,
             dependents=recipient.dependents,
             nationality=recipient.nationality,
             id_no = recipient.id_no,
-            id_expiry = recipient.id_expiry
+            id_expiry = recipient.id_expiry,
+            document_id = recipient.document_id
         )
 
     response = add_a_r(engine, new_recipient)
@@ -433,12 +494,10 @@ async def add_aid_category(
 # =====================
 
 @app.post("/aid_donor")
-async def add_aid_category(
+async def add_aid_donor(
         request : Request,
         donor : AidDonor,
     ) -> dict:
-
-    print(donor)
 
     from db.db_builder import Aid_Donor
     from db.db_api import add_aid_donor as add_a_d
@@ -447,21 +506,120 @@ async def add_aid_category(
     add_donor = Aid_Donor(
         first_name=donor.first_name,
         last_name=donor.last_name,
-        age=donor.age,
+        age = donor.age,
         mail_address=donor.mail_address,
         phone_number=donor.phone_number,
         email_address=donor.email_address,
-        preferred_comm=donor.preferred_comm
+        preferred_comm=donor.preferred_comm,
+        nationality=donor.nationality,
+        id_no = donor.id_no,
+        id_expiry = donor.id_expiry,
+        document_id = donor.document_id,
+        org_name = donor.org_name,
+        org_abn = donor.org_abn
     )
-
-    print(donor.preferred_comm)
 
     response = add_a_d(engine, add_donor)
 
     if response.error == None:
-        log.info("Aid donor added: " + str(response.id))
+        log.info("Aid donor added: " + str(donor))
     else:
         log.info("Unable to add donor " + str(response.error))
+
+    return response
+
+# =====================
+# API ENDPOINT: Add aid item
+# Receive an Item data structure from field
+# Convert it to a DB object and add it to the database
+# =====================
+
+@app.post("/inventory")
+async def add_aid_item(
+        request : Request,
+        item : Item,
+    ) -> dict:
+
+    from db.db_builder import Item_DB
+    from db.db_api import add_aid_item
+    log.info("'/inventory/' called from: " + str(request.client))
+
+    add_item = Item_DB(
+        item_name = item.item_name,
+        item_quantity = item.item_quantity,
+        item_brand = item.item_brand,
+        expiry_date = item.expiry_date,
+        ingredients = item.ingredients,
+        allergen_info = item.allergen_info,
+        size = item.size,
+        category_id = item.category_id,
+        from_donor = item.from_donor
+    )
+
+    response = add_aid_item(engine=engine, item=add_item)
+
+    if response.error == None:
+        log.info("Aid item added: " + str(response.id))
+    else:
+        log.info("Unable to add item " + str(response.error))
+
+    return response
+
+# =====================
+# API ENDPOINT: Add aid kit
+# =====================
+
+@app.post("/aid_kit")
+async def add_aid_kit(
+        request : Request,
+        request_kit : AidKit,
+    ) -> dict:
+
+    from db.db_builder import Aid_Kit
+    from db.db_api import add_aid_kit
+    log.info("'/aid_kit/' called from: " + str(request.client))
+
+    kit = Aid_Kit(
+        aid_kit_id = request_kit.aid_kit_id,
+        aidkit_name = request_kit.aidkit_name,
+        aidkit_description = request_kit.aidkit_description
+    )
+
+    response = add_aid_kit(engine=engine, kit=kit)
+
+    if response.error == None:
+        log.info("Aid kit added: " + str(response.id))
+    else:
+        log.info("Unable to add aid kit " + str(response.error))
+
+    return response
+
+# =====================
+# API ENDPOINT: Puts an item in an aid kit
+# =====================
+
+@app.put("/aid_kit")
+async def add_aid_kit_item(
+        request : Request,
+        kit_item : AidKitItem,
+    ) -> dict:
+
+    from db.db_builder import Aid_Kit_Item
+    from db.db_api import add_aid_kit_item
+    log.info("'/aid_kit/' called from: " + str(request.client))
+
+    kit_item = Aid_Kit_Item(
+        aid_kit_id = kit_item.aid_kit_id,
+        item_id = kit_item.item_id,
+        quantity = kit_item.quantity
+    )
+
+    response = add_aid_kit_item(engine=engine, kit_item=kit_item)
+
+    if response.error == None:
+        log.info("Aid kit item added: " + str(response.id))
+    else:
+        log.info("Unable to add aid kit item " + str(response.error))
 
     return response
 

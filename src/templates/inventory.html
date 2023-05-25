@@ -22,28 +22,29 @@
         data-bs-target="#modal"
         app-action="aid_category.add"
       >Add Aid Category</button>
-
-      <button id="testFactory" class="btn btn-primary">Test Render Table</button>
+      <button
+        class="btn btn-primary"
+        data-bs-toggle="modal"
+        data-bs-target="#modal"
+        app-action="aid_kit.add"
+      >Add New Kit</button>
+      <button
+        class="btn btn-primary"
+        data-bs-toggle="modal"
+        data-bs-target="#modal"
+        app-action="aid_kit.edit"
+      >Manage Aid Kits</button>
     </div>
   </div>
 
   <div class="row">
-    <div class="col" id="factoryTarget">
-
-      <h3>id:factoryTarget</h3>
-
-      <ul class="list-group">
-        <li class="list-group-item">An item</li>
-        <li class="list-group-item">A second item</li>
-        <li class="list-group-item">A third item</li>
-        <li class="list-group-item">A fourth item</li>
-        <li class="list-group-item">And a fifth one</li>
-      </ul>
-
+    <div class="col" id="dataTarget">
     </div>
   </div>
 </div>
 
+
 <script src="/js/inventory.js"></script>
+<script src="/js/kit.js"></script>
 
 {%endblock content%}
